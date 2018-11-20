@@ -7,12 +7,12 @@ import os, subprocess, getopt, sys, time, argparse
 
 class Ctl():
     def __init__(self, script: str):
-        self.script = script
+        self.pwd = os.getcwd()
+        self.script = os.path.join(self.pwd, script)
 
     def is_run(self):
         # 检查是否启动
-        p = subprocess.Popen('ps -ax | grep {} | grep -v grep'.format(self.script), stdout=subprocess.PIPE,
-                             shell=True)
+        p = subprocess.Popen('ps -ax | grep {} | grep -v grep'.format(self.script), stdout=subprocess.PIPE, shell=True)
         p.wait()
         # 捕获stdout
         pids = []
