@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Created on 2018/11/7
+'''
+-------------------------------------------------
+    Author :        Afreto
+    E-mail:         kongandmarx@163.com
+-------------------------------------------------
+    Description : 脚本启动管理器
+    Usage: python3 ctl.py -h
+-------------------------------------------------
+'''
 
 import os, subprocess, getopt, sys, time, argparse
 

@@ -1,3 +1,16 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+'''
+-------------------------------------------------
+    File Name：     unplash_download.py
+    Author :        Afreto
+    E-mail:         kongandmarx@163.com
+    Date:           2018/6/22
+-------------------------------------------------
+    Description :
+        下载 unsplash 壁纸
+-------------------------------------------------
+'''
 import requests
 import time, os
 

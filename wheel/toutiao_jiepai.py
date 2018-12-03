@@ -1,3 +1,17 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+'''
+-------------------------------------------------
+    File Name：     toutiao_jiepai.py
+    Author :        Afreto
+    E-mail:         kongandmarx@163.com
+    Date:           2018/6/22
+-------------------------------------------------
+    Description :
+        下载头条街拍图片
+-------------------------------------------------
+'''
+
 import requests, os, time
 
 

@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+'''
+-------------------------------------------------
+    File Name：     sql_cursor.py
+    Author :        Afreto
+    E-mail:         kongandmarx@163.com
+    Date:           2018/6/22
+-------------------------------------------------
+    Description :
+        提供操作 MySQL 的 with 方法
+-------------------------------------------------
+'''
 import logging
 import pymysql
 

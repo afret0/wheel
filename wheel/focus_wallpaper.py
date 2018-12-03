@@ -1,11 +1,16 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
+'''
 -------------------------------------------------
-   File Name：     focus_wallpapaer
-   Author :        kongandmarx@163.com
-   date：          2018/6/22
+    File Name：     focus_wallpaper.py
+    Author :        Afreto
+    E-mail:         kongandmarx@163.com
+    Date:           2018/6/22
 -------------------------------------------------
-"""
+    Description :
+        提取 windows 聚焦壁纸
+-------------------------------------------------
+'''
 import os, os.path
 import shutil, filecmp
 import stat

@@ -1,7 +1,15 @@
-# DATE :  2018/7/23 
-# AUTHOR : kongandmarx@163.com
-
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+'''
+-------------------------------------------------
+    File Name：     exporter_with_flask.py
+    Author :        Afreto
+    E-mail:         kongandmarx@163.com
+-------------------------------------------------
+    Description :
+        使用 flask 实现的 Prometheus exporter 服务
+-------------------------------------------------
+'''
 import prometheus_client
 from prometheus_client import Gauge
 from flask import Response, Flask
