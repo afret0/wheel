@@ -7,8 +7,8 @@
     E-mail:         kongandmarx@163.com
     Date:           2018/6/22
 -------------------------------------------------
-    Description :
-        下载头条街拍图片
+    Description :   下载头条街拍图片
+    Usage:  python3 toutiao_jiepai.py
 -------------------------------------------------
 '''
 

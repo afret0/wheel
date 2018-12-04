@@ -7,8 +7,8 @@
     E-mail:         kongandmarx@163.com
     Date:           2018/6/22
 -------------------------------------------------
-    Description :
-        下载 unsplash 壁纸
+    Description :   下载 unsplash 壁纸
+    Usage:  python3 unplash_download.py
 -------------------------------------------------
 '''
 import requests

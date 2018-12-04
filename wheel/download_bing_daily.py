@@ -8,6 +8,7 @@
     E-mail:         kongandmarx@163.com
 -------------------------------------------------
     Description :   下载 bing 当日壁纸
+    Usage:  python3 download_bing_daily.py
 -------------------------------------------------
 '''
 import requests, re, time, os

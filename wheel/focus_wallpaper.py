@@ -7,8 +7,8 @@
     E-mail:         kongandmarx@163.com
     Date:           2018/6/22
 -------------------------------------------------
-    Description :
-        提取 windows 聚焦壁纸
+    Description :   提取 windows 聚焦壁纸
+    Usage:  python3 focus_wallpaper.py
 -------------------------------------------------
 '''
 import os, os.path
