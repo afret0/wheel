@@ -26,8 +26,7 @@ class UnspalshDownload():
         try:
             r = requests.get(url=target, params=params)
         except Exception as e:
-            print('获取 img{} 列表失败 ... {}'.format(page, e))
-            # raise e
+            print('获取 img{} 列表失败 ... {}'.format(page, e))  # raise e
         else:
             # print(r.json())
             imgs = [{'id': i['id'], 'download': i['links']['download']} for i in r.json()]
@@ -39,12 +38,11 @@ class UnspalshDownload():
         print('saving  {} ...'.format(IMG))
         if not os.path.exists(filepath):
             os.mkdir(filepath)
-        if os.path.exists(IMG):
+        if not os.path.exists(IMG):
             try:
                 r = requests.get(url=img['download'])
             except Exception as e:
-                print('下载 {} 失败 ... {}'.format(IMG, e))
-                # raise e
+                print('下载 {} 失败 ... {}'.format(IMG, e))  # raise e
             else:
                 if not os.path.exists(IMG):
                     with open(os.path.join(filepath, IMG), 'wb') as f:
