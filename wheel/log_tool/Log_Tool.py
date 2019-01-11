@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
-# DATE :  2018/6/8 
-import logging.handlers, configparser,os
+# DATE :  2018/6/8
+import logging.handlers
+import configparser
+import os
+import sys
 
 
 class Log_Tool():
@@ -26,6 +29,7 @@ class Log_Tool():
         # 获取handler
         handler = logging.handlers.RotatingFileHandler(self.log_dir, maxBytes=self.maxBytes,
                                                        backupCount=self.backupCount, encoding='utf-8')
+        console_handler = logging.StreamHandler(sys.stdout)
         # 实例化formatter
         formatter = logging.Formatter(self.fmt)
         # 给handler添加formatter
@@ -34,6 +38,7 @@ class Log_Tool():
         logger = logging.getLogger(self.looger_name)
         # 给logger添加handler
         logger.addHandler(handler)
+        logger.addHandler(console_handler)
         # 设置过滤
         logger.setLevel(self.level)
         return logger
