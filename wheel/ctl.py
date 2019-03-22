@@ -10,7 +10,7 @@
 -------------------------------------------------
 '''
 
-import os, subprocess, getopt, sys, time, argparse
+import os, subprocess, sys, time, argparse
 
 
 class Ctl():
