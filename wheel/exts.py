@@ -9,8 +9,10 @@ import os
 from config import LocConfig, DevConfig, ProConfig
 
 
-def __res(code: int = 0, message: str = 'success') -> dict:
-    return {'code': code, 'message': message}
+def __res(code: int = 0, message: str = 'success', data='') -> dict:
+    if data == '':
+        return {'code': code, 'message': message}
+    return {'code': code, 'message': message, 'data': data}
 
 
 def get_config() -> object:
@@ -26,23 +28,4 @@ def get_config() -> object:
 config = get_config()
 
 
-def phone_check(phone: str) -> tuple:
-    """
-    检查电话号码
-    :param phone:
-    :return: ([phone 校验成功则返回 phone, 校验失败则返回错误信息],错误标志)
-    """
-    if not phone:
-        return __res(-1, 'unable to get phone'), False
-    phone = phone.strip()
-    phone_err_res = __res(-1, 'Abnormal phone number'), False
-    if len(phone) != 11:
-        return phone_err_res
-    return phone, True
-    # try:
-    #     phone = int(phone)
-    # except Exception as e:
-    #     return phone_err_res
-    # else:
-    #     # 可在此修饰 phone
-    #     return phone, True
+
