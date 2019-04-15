@@ -116,4 +116,4 @@ export PATH=$PATH:/usr/local/Cellar/bazaar/2.7.0_1/bin/bzr
 # source ~/mine/ENV/bin/activate
 
 
-eval $(thefuck --alias)
+# eval $(thefuck --alias)

@@ -17,5 +17,6 @@ wget https://raw.githubusercontent.com/kong5664546498/half_a_wheel/master/wheel/
 
 chsh -s /bin/zsh
 zsh
+rm onekey-omzsh.sh
 
 
