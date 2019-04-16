@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 if [-x "$(command -v yum)"]; then
     echo ' use yum'>&2
-    yum install git -y
-    yum install zsh -y
-    yum install wget -y
+#    yum install git -y
+#    yum install zsh -y
+#    yum install wget -y
 fi
 
 if [-x "$(command -v apt-get)"]: then
     echo 'use apt-get'>&2
-    apt-get install git -y
-    apt-get install zsh -y
-    apt-get install wget -y
+#    apt-get install git -y
+#    apt-get install zsh -y
+#    apt-get install wget -y
 fi
 
 
