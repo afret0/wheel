@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+cd /root
 if [ -x "$(command -v yum)" ]; then
     echo ' use yum'>&2
     yum install git -y
