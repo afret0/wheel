@@ -4,10 +4,15 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pylint = "*"
 
 [packages]
-redis = "==2.10.6"
+redis = "==3.2.1"
 requests = "*"
+tenacity = "*"
+aiohttp = "*"
+flask = "*"
+icecream = "*"
 
 [requires]
 python_version = "3.6"
