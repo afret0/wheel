@@ -90,6 +90,7 @@ export PATH=$PATH:/usr/local/Cellar/bazaar/2.7.0_1/bin/bzr
 # alias mine='cd ~/mine'
 # alias bs='brew cask'
 # alias buffer='cd ~/mine/buffer'
+alias lsl='ls -lrt'
 
 
 # Preferred editor for local and remote sessions

@@ -3,7 +3,7 @@
 
 mv_file_to_dir(){
     path=$1
-    files=$(ls $path | grep vue)
+    files=$(ls $path | grep -v _1.csv)
     for file in $files
     do
         echo $file
