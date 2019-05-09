@@ -32,6 +32,13 @@ wget https://raw.githubusercontent.com/kong5664546498/half_a_wheel/master/wheel/
 
 cp .zshrc /root/
 
+
+git clone --depth 1 https://github.com/cjbassi/gotop /tmp/gotop
+
+/tmp/gotop/scripts/download.sh
+
+mv ./gotop /usr/bin
+
 chsh -s /bin/zsh
 zsh
 #
