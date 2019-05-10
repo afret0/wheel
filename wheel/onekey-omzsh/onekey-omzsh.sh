@@ -27,7 +27,7 @@ if [ -f "/root/.zshrc" ]; then
 fi
 
 # 下载 .zshrc
-wget https://raw.githubusercontent.com/kong5664546498/half_a_wheel/master/wheel/onekey-omzsh/.zshrc\
+wget https://raw.githubusercontent.com/kong5664546498/half_a_wheel/master/wheel/onekey-omzsh/.zshrc
 cp .zshrc /root/
 # ===================================
 
