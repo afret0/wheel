@@ -25,10 +25,8 @@ git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:
 if [ -f "/root/.zshrc" ]; then
      mv /root/.zshrc /root/.zshrc.bk
 fi
-
 # 下载 .zshrc
-wget https://raw.githubusercontent.com/kong5664546498/half_a_wheel/master/wheel/onekey-omzsh/.zshrc
-cp .zshrc /root/
+wget -P /root https://raw.githubusercontent.com/kong5664546498/half_a_wheel/master/wheel/onekey-omzsh/.zshrc
 # ===================================
 
 # ============== gotop ==============
