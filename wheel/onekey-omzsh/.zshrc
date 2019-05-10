@@ -118,3 +118,9 @@ alias lsl='ls -lrt'
 
 
 # eval $(thefuck --alias)
+
+
+# ============== auto jump ==============
+[[ -s /root/.autojump/etc/profile.d/autojump.sh ]] && source /root/.autojump/etc/profile.d/autojump.sh
+autoload -U compinit && compinit -u
+# ===================================
