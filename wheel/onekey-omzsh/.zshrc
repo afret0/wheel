@@ -67,7 +67,7 @@ ZSH_THEME="avit"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git zsh-autosuggestions zsh-syntax-highlighting command-not-found)
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting command-not-found z)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -121,6 +121,6 @@ alias lsl='ls -lrt'
 
 
 # ============== auto jump ==============
-[[ -s /root/.autojump/etc/profile.d/autojump.sh ]] && source /root/.autojump/etc/profile.d/autojump.sh
-autoload -U compinit && compinit -u
+# [[ -s /root/.autojump/etc/profile.d/autojump.sh ]] && source /root/.autojump/etc/profile.d/autojump.sh
+# autoload -U compinit && compinit -u
 # ===================================

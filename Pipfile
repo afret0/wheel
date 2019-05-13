@@ -13,6 +13,7 @@ tenacity = "*"
 aiohttp = "*"
 flask = "*"
 icecream = "*"
+pysnooper = "*"
 
 [requires]
 python_version = "3.6"
