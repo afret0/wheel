@@ -41,7 +41,6 @@ mv ./gotop /usr/bin
 git clone git://github.com/wting/autojump.git
 cd autojump
 ./install.py
-rm -rf autojump
 
 # the fuck
 pip3 install thefuck
