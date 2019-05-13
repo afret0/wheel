@@ -38,9 +38,9 @@ mv ./gotop /usr/bin
 # ===================================
 
 # autojump
-git clone git://github.com/wting/autojump.git
-cd autojump
-./install.py
+#git clone git://github.com/wting/autojump.git
+#cd autojump
+#./install.py
 
 # the fuck
 pip3 install thefuck
