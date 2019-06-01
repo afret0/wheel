@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 pylint = "*"
+autopep8 = "*"
 
 [packages]
 redis = "==3.2.1"
@@ -15,6 +16,8 @@ flask = "*"
 icecream = "*"
 pysnooper = "*"
 pytest = "*"
+pymongo = "*"
+ipython = "*"
 
 [requires]
 python_version = "3.6"
