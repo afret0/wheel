@@ -79,19 +79,13 @@ source $ZSH/oh-my-zsh.sh
 # export LANG=en_US.UTF-8
 # export http_proxy=http://127.0.0.1:1087
 # export https_proxy=http://127.0.0.1:1087
-# export GOPATH=/Users/afreto/mine/go
 export PATH="$GOPATH/bin:$PATH"
 export PATH=$PATH:/usr/local/sbin
-export PATH=$PATH:/usr/local/Cellar/bazaar/2.7.0_1/bin/bzr
 
 
-# alias uki="cd /Users/afreto/mine/python_projects/uki"
-# alias myblog="cd /Users/afreto/mine/myblog"
-# alias mine='cd ~/mine'
-# alias bs='brew cask'
-# alias buffer='cd ~/mine/buffer'
 alias lsl='ls -lrt'
-
+alias taif='tail -f'
+alias tf='taif'
 
 # Preferred editor for local and remote sessions
 # if [[ -n $SSH_CONNECTION ]]; then
