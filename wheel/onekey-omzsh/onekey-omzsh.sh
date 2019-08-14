@@ -48,7 +48,7 @@ wget -P /root https://raw.githubusercontent.com/kong5664546498/half_a_wheel/mast
 #./install.py
 
 # the fuck
-pip3 install thefuck
+# pip3 install thefuck
 
 # 修改默认 bash
 chsh -s /bin/zsh
