@@ -26,10 +26,6 @@ if [ -f "/root/.zshrc" ]; then
      mv /root/.zshrc /root/.zshrc.bk
 fi
 
-if [ -f "./onekey-omzsh.sh" ]; then
-    rm ./onekey-omzsh.sh
-fi
-
 # 下载 .zshrc
 wget -P /root https://raw.githubusercontent.com/kong5664546498/half_a_wheel/master/wheel/onekey-omzsh/.zshrc
 # ===================================
