@@ -111,7 +111,7 @@ alias tf='taif'
 # source ~/mine/ENV/bin/activate
 
 
-eval $(thefuck --alias)
+# eval $(thefuck --alias)
 
 
 # ============== auto jump ==============

@@ -35,11 +35,11 @@ wget -P /root https://raw.githubusercontent.com/kong5664546498/half_a_wheel/mast
 # ===================================
 
 # ============== gotop ==============
-git clone --depth 1 https://github.com/cjbassi/gotop /tmp/gotop
+# git clone --depth 1 https://github.com/cjbassi/gotop /tmp/gotop
 
-/tmp/gotop/scripts/download.sh
+# /tmp/gotop/scripts/download.sh
 
-mv ./gotop /usr/bin
+# mv ./gotop /usr/bin
 # ===================================
 
 # autojump
