@@ -16,7 +16,7 @@ import os, subprocess, sys, time, argparse
 class Ctl():
     def __init__(self, script: str):
         self.pwd = os.getcwd()
-        self.script = os.path.join(self.pwd, script)
+        self.script = os.path.join(self.pwd, script
 
     def is_run(self):
         # 检查是否启动
