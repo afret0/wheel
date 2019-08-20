@@ -6,6 +6,9 @@ if [ -x "$(command -v yum)" ]; then
     yum install git -y
     yum install zsh -y
     yum install wget -y
+    # nvim
+    yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    yum install -y neovim python3-neovim
 fi
 
 if [ -x "$(command -v apt-get)" ]; then
@@ -13,6 +16,8 @@ if [ -x "$(command -v apt-get)" ]; then
     apt-get install git -y
     apt-get install zsh -y
     apt-get install wget -y
+    # nvim
+    apt install neovim
 fi
 # ===================================
 
@@ -31,11 +36,11 @@ wget -P /root https://raw.githubusercontent.com/kong5664546498/half_a_wheel/mast
 # ===================================
 
 # ============== gotop ==============
-# git clone --depth 1 https://github.com/cjbassi/gotop /tmp/gotop
+git clone --depth 1 https://github.com/cjbassi/gotop /tmp/gotop
 
-# /tmp/gotop/scripts/download.sh
+/tmp/gotop/scripts/download.sh
 
-# mv ./gotop /usr/bin
+mv ./gotop /usr/bin
 # ===================================
 
 # autojump
@@ -45,6 +50,11 @@ wget -P /root https://raw.githubusercontent.com/kong5664546498/half_a_wheel/mast
 
 # the fuck
 # pip3 install thefuck
+
+# nvim-pulg
+curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+
 
 # 修改默认 bash
 chsh -s /bin/zsh

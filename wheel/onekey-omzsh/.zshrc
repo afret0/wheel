@@ -8,9 +8,9 @@ export ZSH="/root/.oh-my-zsh"
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
-# ZSH_THEME="agnoster"
+ZSH_THEME="agnoster"
 # ZSH_THEME="bullet-train"
-ZSH_THEME="robbyrussell"
+# ZSH_THEME="robbyrussell"
 # ZSH_THEME="avit"
 
 
@@ -86,6 +86,7 @@ export PATH=$PATH:/usr/local/sbin
 alias lsl='ls -lrt'
 alias taif='tail -f'
 alias tf='taif'
+# alias vim="nvim"
 
 # Preferred editor for local and remote sessions
 # if [[ -n $SSH_CONNECTION ]]; then
