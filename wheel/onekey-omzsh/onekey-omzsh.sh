@@ -35,6 +35,20 @@ fi
 wget -P /root https://raw.githubusercontent.com/kong5664546498/half_a_wheel/master/wheel/onekey-omzsh/.zshrc
 # ===================================
 
+
+# tmux 
+git clone https://github.com/tmux/tmux.git
+cd tmux
+sh autogen.sh
+./configure && make
+
+# tmux conf
+cd /root
+git clone https://github.com/gpakosz/.tmux.git
+ln -s -f .tmux/.tmux.conf
+cp .tmux/.tmux.conf.local .
+
+
 # ============== gotop ==============
 git clone --depth 1 https://github.com/cjbassi/gotop /tmp/gotop
 
