@@ -37,7 +37,8 @@ wget -P /root https://raw.githubusercontent.com/kong5664546498/half_a_wheel/mast
 
 
 # nvim conf
-mkdir /root/.confg/nvim
+mkdir /root/.config
+mkdir /root/.config/nvim
 wget -O /root/.confg/nvim/init.vim https://raw.githubusercontent.com/kong5664546498/half_a_wheel/master/wheel/conf/init.vim
 
 
