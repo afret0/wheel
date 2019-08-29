@@ -36,6 +36,11 @@ wget -P /root https://raw.githubusercontent.com/kong5664546498/half_a_wheel/mast
 # ===================================
 
 
+# nvim conf
+mkdir /root/.confg/nvim
+wget -O /root/.confg/nvim/init.vim https://raw.githubusercontent.com/kong5664546498/half_a_wheel/master/wheel/conf/init.vim
+
+
 # tmux 
 git clone https://github.com/tmux/tmux.git
 cd tmux
