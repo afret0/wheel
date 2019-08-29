@@ -9,6 +9,8 @@ if [ -x "$(command -v yum)" ]; then
     # nvim
     yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     yum install -y neovim python3-neovim
+    # tmux dependencies
+    yum install autogen automake libevent-dev libncurses5-dev
 fi
 
 if [ -x "$(command -v apt-get)" ]; then
@@ -18,6 +20,8 @@ if [ -x "$(command -v apt-get)" ]; then
     apt-get install wget -y
     # nvim
     apt install neovim
+    # tmux dependencies
+    apt-get install autogen automake libevent-dev libncurses5-dev
 fi
 # ===================================
 
