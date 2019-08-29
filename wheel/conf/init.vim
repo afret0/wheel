@@ -26,4 +26,5 @@ Plug 'tpope/vim-surround'
 call plug#end()
 nmap ss <Plug>(easymotion-s2)
 
+set background=dark
 colorscheme hybrid
