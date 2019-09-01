@@ -6,6 +6,7 @@ if [ -x "$(command -v yum)" ]; then
     yum install git -y
     yum install zsh -y
     yum install wget -y
+    yum install curl -y
     # nvim
     yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     yum install -y neovim python3-neovim
@@ -18,6 +19,7 @@ if [ -x "$(command -v apt-get)" ]; then
     apt-get install git -y
     apt-get install zsh -y
     apt-get install wget -y
+    apt-get install curl -y
     # nvim
     apt install neovim -y
     # tmux dependencies

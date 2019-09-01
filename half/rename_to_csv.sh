@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/user/bin/env bash
 # get all filename in specified path
 
 mv_file_to_dir(){
