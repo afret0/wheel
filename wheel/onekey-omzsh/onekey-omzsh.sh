@@ -21,7 +21,7 @@ if [ -x "$(command -v apt-get)" ]; then
     apt-get install wget -y
     apt-get install curl -y
     # nvim
-    apt install neovim -y
+    apt-get install neovim -y
     # tmux dependencies
     apt-get install autogen automake libevent-dev libncurses5-dev -y
 fi
@@ -48,17 +48,17 @@ mkdir /root/.config/nvim
 wget -O /root/.confg/nvim/init.vim https://raw.githubusercontent.com/kong5664546498/half_a_wheel/master/wheel/conf/init.vim
 
 
-# tmux 
-git clone https://github.com/tmux/tmux.git
-cd tmux
-sh autogen.sh
-./configure && make
+# # tmux 
+# git clone https://github.com/tmux/tmux.git
+# cd tmux
+# sh autogen.sh
+# ./configure && make
 
-# tmux conf
-cd /root
-git clone https://github.com/gpakosz/.tmux.git
-ln -s -f .tmux/.tmux.conf
-cp .tmux/.tmux.conf.local .
+# # tmux conf
+# cd /root
+# git clone https://github.com/gpakosz/.tmux.git
+# ln -s -f .tmux/.tmux.conf
+# cp .tmux/.tmux.conf.local .
 
 
 # ============== gotop ==============
