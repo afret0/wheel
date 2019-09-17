@@ -8,10 +8,10 @@ if [ -x "$(command -v yum)" ]; then
     yum install wget -y
     yum install curl -y
     # nvim
-    yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-    yum install -y neovim python3-neovim
+    # yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    # yum install -y neovim python3-neovim
     # tmux dependencies
-    yum install autogen automake libevent-dev libncurses5-dev -y
+    # yum install autogen automake libevent-dev libncurses5-dev -y
 fi
 
 if [ -x "$(command -v apt-get)" ]; then
@@ -21,9 +21,9 @@ if [ -x "$(command -v apt-get)" ]; then
     apt-get install wget -y
     apt-get install curl -y
     # nvim
-    apt-get install neovim -y
+    # apt-get install neovim -y
     # tmux dependencies
-    apt-get install autogen automake libevent-dev libncurses5-dev -y
+    # apt-get install autogen automake libevent-dev libncurses5-dev -y
 fi
 # ===================================
 
@@ -42,10 +42,10 @@ wget -P /root https://raw.githubusercontent.com/kong5664546498/half_a_wheel/mast
 # ===================================
 
 
-# nvim conf
-mkdir /root/.config
-mkdir /root/.config/nvim
-wget -O /root/.confg/nvim/init.vim https://raw.githubusercontent.com/kong5664546498/half_a_wheel/master/wheel/conf/init.vim
+# # nvim conf
+# mkdir /root/.config
+# mkdir /root/.config/nvim
+# wget -O /root/.confg/nvim/init.vim https://raw.githubusercontent.com/kong5664546498/half_a_wheel/master/wheel/conf/init.vim
 
 
 # # tmux 
@@ -62,11 +62,11 @@ wget -O /root/.confg/nvim/init.vim https://raw.githubusercontent.com/kong5664546
 
 
 # ============== gotop ==============
-git clone --depth 1 https://github.com/cjbassi/gotop /tmp/gotop
+# git clone --depth 1 https://github.com/cjbassi/gotop /tmp/gotop
 
-/tmp/gotop/scripts/download.sh
+# /tmp/gotop/scripts/download.sh
 
-mv ./gotop /usr/bin
+# mv ./gotop /usr/bin
 # ===================================
 
 # autojump
@@ -78,8 +78,8 @@ mv ./gotop /usr/bin
 # pip3 install thefuck
 
 # nvim-pulg
-curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+# curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
+#     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
 
 # 修改默认 bash
