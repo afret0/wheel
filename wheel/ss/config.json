@@ -9,11 +9,10 @@
     "method":"aes-256-cfb",
     "protocol":"auth_aes128_md5",
     "protocol_param":"",
-    "obfs":"http_simple_compatible",
+    "obfs":"tls1.2_ticket_auth",
     "obfs_param":"",
     "redirect":"",
     "dns_ipv6":false,
-    "fast_open":false,
+    "fast_open":true,
     "workers":1
 }
-
