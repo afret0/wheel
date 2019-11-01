@@ -7,9 +7,12 @@
     Usage: 
 -------------------------------------------------
 """
+import time
 
 
 def hello(world: str) -> str:
+    print("1111111111")
+    time.sleep(5)
     return world if world else print("kitty")
 
 
@@ -27,11 +30,12 @@ class Bird:
         print(f"eating")
 
 
-import requests
 
-url = "http://www.baidu.com"
-res = requests.get(url=url, params={})
-print(res.status_code)
+# import requests
+
+# url = "http://www.baidu.com"
+# res = requests.get(url=url, params={})
+# print(res.status_code)
 
 if __name__ == "__main__":
     for i in range(1, 100):
