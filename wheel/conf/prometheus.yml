@@ -45,3 +45,7 @@ scrape_configs:
   - job_name: "burialLog_pro4"
     static_configs:
     - targets: ["192.168.5.12:2117"]
+
+
+    # docker run -d -p 9090:9090 -v /etc/prometheus:/etc/prometheus  prom/prometheus
+
