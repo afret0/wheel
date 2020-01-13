@@ -86,8 +86,8 @@ export PATH=$PATH:/usr/local/sbin
 alias lsl='ls -lrt'
 alias taif='tail -f'
 alias tf='taif'
-alias vim="nvim"
-alias cat="bat"
+# alias vim="nvim"
+# alias cat="bat"
 
 # Preferred editor for local and remote sessions
 # if [[ -n $SSH_CONNECTION ]]; then
