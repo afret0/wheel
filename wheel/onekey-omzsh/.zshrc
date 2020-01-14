@@ -81,6 +81,7 @@ source $ZSH/oh-my-zsh.sh
 # export https_proxy=http://127.0.0.1:1087
 export PATH="$GOPATH/bin:$PATH"
 export PATH=$PATH:/usr/local/sbin
+export EDITOR=vim
 
 
 alias lsl='ls -lrt'
