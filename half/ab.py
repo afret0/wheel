@@ -2,6 +2,7 @@ from xml.dom.minidom import parse
 import xml.dom.minidom
 import xml.etree.ElementTree as ET
 import re
+import requests
 
 # from yattag import indent
 
@@ -21,6 +22,7 @@ def get_tag(s: str, tag: str) -> str:
 def main():
     s = '<appid>wx50aa92aff9dece89</appid><mch_id>1501874481</mch_id><nonce_str>Rnd58CRxhbfax6Zs</nonce_str><prepay_id>wx1911402597053289bf4ba8741034009600</prepay_id><result_code>SUCCESS</result_code><return_code>SUCCESS</return_code><return_msg>OK</return_msg><sign>appid=wx50aa92aff9dece89&noncestr=Rnd58CRxhbfax6Zs&package=Sign=WXPay&partnerid=1501874481&prepayid=wx1911402597053289bf4ba8741034009600&timestamp=1574163625&sign=128C78725118195EA5096B7D73302D51</sign><trade_type>APP</trade_type>'
 
+
     # tree = ET.fromstring(s)
     # root = tree.getroot()
     # appid = root.find("appid")
@@ -33,17 +35,21 @@ def main():
     # parser = xml.sax.make_parser()
     # parser.setFeature(xml.sax.handler.feature_namespaces, 0)
 
-    print(get_tag(s,"sign"))
-    raw_sign = get_tag(s,"sign")
-    sign = raw_sign.split("=")[-1]
+    # print(get_tag(s,"sign"))
+    # raw_sign = get_tag(s,"sign")
+    # sign = raw_sign.split("=")[-1]
 
-    pay_timestamp = raw_sign.split("timestamp")[-1]
-    pay_timestamp = pay_timestamp.split("=")[1].split("&")[0]
+    # pay_timestamp = raw_sign.split("timestamp")[-1]
+    # pay_timestamp = pay_timestamp.split("=")[1].split("&")[0]
     
-    print(pay_timestamp)
-    # print(collection)
+    # print(pay_timestamp)
+    # # print(collection)
 
-    print("stop")
+    # print("stop")
+    # res = requests.get("http://127.0.0.1:20033/v1/sentry_alarm/test",timeout=1)
+       body = {"subject": f"{self.subject}{utils.today()}", "text": self.text, "toAddr": ",".join(self.contract)}
+        url = "https://email.neoclub.cn/send_email"
+        res = neoclub.request.post(url=url, data=body)
 
 
 main()
