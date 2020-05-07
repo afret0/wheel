@@ -38,6 +38,10 @@ class OverviewCollector(object):
 
         yield metric
 
+        c = CounterMetricFamily("HttpRequests", 'Help text', labels=['app'])
+        c.add_metric(["example"], 2000)
+        yield c
+
 
 if __name__ == "__main__":
     REGISTRY.register(OverviewCollector())
