@@ -9,7 +9,6 @@ def get_tag(s: str, tag: str) -> str:
     v = re.findall(reg, s)
     # print(v)
     v1 = v[0].split(">")[1]
-    # print(v1)
     v2 = v1.split("<")[0]
     return v2
     # print(v2)
