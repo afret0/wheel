@@ -64,3 +64,4 @@ target/
 .venv/
 venv
 .vscode
+.DS_Store
