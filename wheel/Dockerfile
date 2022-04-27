@@ -1,11 +1,11 @@
-FROM debian
-RUN ["apt-get","update"]
-RUN ["apt-get","install","wget","-y"]
-RUN ["apt-get","install","python3"]
-RUN ["apt","install","python3-pip"]
-RUN ["wget","https://raw.githubusercontent.com/kong5664546498/half_a_wheel/master/wheel/onekey-omzsh/onekey-omzsh.sh"]
-RUN ["chmod", "+x", "onekey-omzsh.sh"]
-RUN ["./onekey-omzsh.sh"]
+FROM debian:unstable-slim
+# RUN ["apt-get","update"]
+# RUN ["apt-get","install","wget","-y"]
+# RUN ["apt-get","install","python3"]
+# RUN ["apt","install","python3-pip"]
+# RUN ["wget","https://raw.githubusercontent.com/kong5664546498/half_a_wheel/master/wheel/onekey-omzsh/onekey-omzsh.sh"]
+# RUN ["chmod", "+x", "onekey-omzsh.sh"]
+# RUN ["./onekey-omzsh.sh"]
 
 # RUN ["apt-get","install","npm","-y"]
 # RUN ["npm","install","-g","nodeppt"]
