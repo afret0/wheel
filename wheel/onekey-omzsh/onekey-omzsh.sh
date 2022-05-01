@@ -17,6 +17,7 @@ fi
 
 if [ -x "$(command -v apt-get)" ]; then
     echo 'use apt-get'>&2
+    apt-get update 
     apt-get install git -y
     apt-get install zsh -y
     apt-get install wget -y
