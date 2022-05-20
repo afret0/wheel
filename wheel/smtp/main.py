@@ -25,7 +25,6 @@ class EmailSender:
         self.smtp_obj.sendmail(self.sender, self.receiver, message.as_string())
 
 
-email_sender = EmailSender()
 
 
 @app.route("/", methods=["POST"])
@@ -35,6 +34,7 @@ def send_email():
     to = data["to"]
     subject = data["subject"]
     text = data["text"]
+    email_sender = EmailSender()
     email_sender.send(to, subject, text)
     return jsonify({"code": 1, "msg": "succeed"})
 
