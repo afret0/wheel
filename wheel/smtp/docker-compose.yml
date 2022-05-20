@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  smtp:
+    image: smtp:1
+    container_name: smtp
+#    environment:
+#      - MONGO_INITDB_ROOT_USERNAME=admin
+#      - MONGO_INITDB_ROOT_PASSWORD=qpzm2745
+    ports:
+      - "10119:8080"
+    restart: unless-stopped
