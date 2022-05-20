@@ -41,5 +41,5 @@ def send_email():
 
 if __name__ == "__main__":
     # email_sender.send("18435155427@163.com", "test", "test")
-    app.run(port=8080, debug=False)
+    app.run(host="0.0.0.0",port=8080, debug=False)
     pass
