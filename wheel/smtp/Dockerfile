@@ -1,5 +1,4 @@
 FROM afreto/debian
-MAINTAINER afreto kongandmarx@163.com
 COPY . /root
 RUN ["pipenv","install"]
 RUN ["pipenv","install","flask"]

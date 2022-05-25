@@ -36,7 +36,7 @@ def send_email():
     text = data["text"]
     email_sender = EmailSender()
     email_sender.send(to, subject, text)
-    return jsonify({"code": 1, "msg": "succeed"})
+    return jsonify({"code": 1, "message": "succeed"})
 
 
 if __name__ == "__main__":
