@@ -12,11 +12,14 @@ func init() {
 	Config = viper.New()
 	Config.AddConfigPath("./config")
 	env := tool.GetTool().GetEnv()
-	if env == "product" {
+	switch env {
+	case "product":
 		Config.SetConfigName("config")
 		gin.SetMode(gin.ReleaseMode)
-	} else {
+	case "test":
 		Config.SetConfigName("configTest")
+	case "dev":
+		Config.SetConfigName("configDev")
 	}
 	err := Config.ReadInConfig()
 	if err != nil {
