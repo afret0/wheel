@@ -1,49 +1,21 @@
+import json
+import hashlib
 
-
-# from yattag import indent
-
-
-def get_tag(s: str, tag: str) -> str:
-    reg = f"<{tag}>.*</{tag}>"
-    # print(reg)
-    v = re.findall(reg, s)
-    # print(v)
-    v1 = v[0].split(">")[1]
-    v2 = v1.split("<")[0]
-    return v2
-    # print(v2)
-
-
-def main():
-    s = '<appid>wx50aa92aff9dece89</appid><mch_id>1501874481</mch_id><nonce_str>Rnd58CRxhbfax6Zs</nonce_str><prepay_id>wx1911402597053289bf4ba8741034009600</prepay_id><result_code>SUCCESS</result_code><return_code>SUCCESS</return_code><return_msg>OK</return_msg><sign>appid=wx50aa92aff9dece89&noncestr=Rnd58CRxhbfax6Zs&package=Sign=WXPay&partnerid=1501874481&prepayid=wx1911402597053289bf4ba8741034009600&timestamp=1574163625&sign=128C78725118195EA5096B7D73302D51</sign><trade_type>APP</trade_type>'
-    for  i  in  range(100,101):
-        print(i,end="\r")
-
-
-    # tree = ET.fromstring(s)
-    # root = tree.getroot()
-    # appid = root.find("appid")
-    # s1 = indent(s.encode('utf-8'))
-
-    # dom_tree = xml.dom.minidom.parseString(s.encode("utf-8"))
-    # collection = dom_tree.documentElement
-    # root = collection.getElementsByTagName("xml")
-    # appid = collection.getElementsByTagName("appid")
-    # parser = xml.sax.make_parser()
-    # parser.setFeature(xml.sax.handler.feature_namespaces, 0)
-
-    # print(get_tag(s,"sign"))
-    # raw_sign = get_tag(s,"sign")
-    # sign = raw_sign.split("=")[-1]
-
-    # pay_timestamp = raw_sign.split("timestamp")[-1]
-    # pay_timestamp = pay_timestamp.split("=")[1].split("&")[0]
-    
-    # print(pay_timestamp)
-    # # print(collection)
-
-    # print("stop")
-    # res = requests.get("http://127.0.0.1:20033/v1/sentry_alarm/test",timeout=1)
-
-
-main()
+if __name__=="__main__":
+    with open("./2269cc780b355851f56da3b6ffc581d1.png", "rb") as f:
+        data = f.read()
+    with open("./35678fc36007bba831a1177f6deb73bd.png", "rb") as fq:
+        data1 = fq.read()
+    print(data == data1)
+    # version = "1.0.8"
+    # url = "https://v1.kekeyuyin.com/user/getUserInfo?uid=123123"
+    # body = {"param": "123134"}
+    # param = url.split("?")[1]
+    # body_str = json.dumps(body)
+    # salt = "X3y7v9T2m1N8J6k0P4o5W7u2E6H9F7g2L3b4A1Z8D9Q5R6S7C0x5V3nXr3m0r9s2D65B8V7"
+    # s1 = version + param + body_str + salt
+    # s2 = sorted(s1)
+    # s3 = "".join(s2)
+    # hash_object = hashlib.md5(s3.encode())
+    # md5_hash = hash_object.hexdigest()
+    # print(md5_hash)
