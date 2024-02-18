@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 briefcase = "*"
+appium-python-client = "*"
 
 [dev-packages]
 flake8 = "*"
