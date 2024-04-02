@@ -27,8 +27,8 @@ func g2() {
 }
 
 func main() {
-	g2()
-	time.Sleep(3*time.Second)
+	go g2()
+	time.Sleep(30 * time.Second)
 	// router := gin.Default()
 	// router.GET("/ping", Ping)
 
