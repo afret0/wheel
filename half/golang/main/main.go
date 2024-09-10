@@ -1,36 +1,57 @@
 package main
 
 import (
-	"fmt"
-	"time"
+	"log"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gizak/termui/v3"
+	"github.com/gizak/termui/v3/widgets"
 )
 
-func Ping(ctx *gin.Context) {
-	ctx.JSON(200, gin.H{
-		"message": "pong",
-	})
-}
-
-func g1() {
-	fmt.Printf("g1 start\n")
-	time.Sleep(10 * time.Second)
-	fmt.Printf("g1 end\n")
-}
-
-func g2() {
-	fmt.Printf("g2 start\n")
-	go g1()
-	time.Sleep(5 * time.Second)
-	fmt.Printf("g2 end\n")
-}
-
 func main() {
-	go g2()
-	time.Sleep(30 * time.Second)
-	// router := gin.Default()
-	// router.GET("/ping", Ping)
+	if err := termui.Init(); err != nil {
+		log.Fatalf("failed to initialize termui: %v", err)
+	}
+	defer termui.Close()
 
-	// router.Run(":8080")
+	// 创建消息列表
+	messageList := widgets.NewList()
+	messageList.Title = "聊天记录"
+	messageList.Rows = []string{}
+
+	// 创建输入框
+	input := widgets.NewParagraph()
+	input.Title = "输入消息"
+	input.Text = ""
+
+	// 设置布局
+	grid := termui.NewGrid()
+	termWidth, termHeight := termui.TerminalDimensions()
+	grid.SetRect(0, 0, termWidth, termHeight)
+
+	grid.Set(
+		termui.NewRow(0.9, messageList),
+		termui.NewRow(0.1, input),
+	)
+
+	// 渲染UI
+	termui.Render(grid)
+
+	// 处理用户输入
+	uiEvents := termui.PollEvents()
+	for {
+		e := <-uiEvents
+		switch e.ID {
+		case "q", "<C-c>":
+			return
+		case "<Enter>":
+			// 发送消息
+			messageList.Rows = append(messageList.Rows, "You: "+input.Text)
+			input.Text = ""
+		default:
+			// 处理输入
+			input.Text += e.ID
+		}
+
+		termui.Render(grid)
+	}
 }

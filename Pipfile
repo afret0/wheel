@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 briefcase = "*"
 appium-python-client = "*"
+crypto = "*"
+pycryptodome = "*"
 
 [dev-packages]
 flake8 = "*"
