@@ -1,4 +1,4 @@
-package _httpV1
+package request
 
 import (
 	"bytes"
