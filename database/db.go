@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"time"
 
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,7 +15,6 @@ type MongoDB struct {
 	logger *logrus.Logger
 	client *mongo.Client
 	db     *mongo.Database
-	ctx    context.Context
 }
 
 //var m *MongoDB
@@ -28,9 +26,7 @@ func GetMongoDB(opt *options.ClientOptions) *MongoDB {
 
 	m := new(MongoDB)
 	m.logger = log.GetLogger()
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	m.ctx = ctx
-	m.client = m.newClient(m.ctx, opt)
+	m.client = m.newClient(context.Background(), opt)
 
 	return m
 }
@@ -76,7 +72,7 @@ func (m *MongoDB) GetCollection(col string) *mongo.Collection {
 }
 
 func (m *MongoDB) Disconnect() {
-	err := m.client.Disconnect(m.ctx)
+	err := m.client.Disconnect(context.Background())
 	if err != nil {
 		m.logger.Panicf("mongoDB disconnect Err: %s", err.Error())
 	} else {
