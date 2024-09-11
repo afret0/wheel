@@ -111,7 +111,7 @@ func (r *RepositoryCache) FindOne(ctx context.Context, entity interface{}, filte
 		return nil
 	}
 
-	obtain, err := r.lock.ObtainWaitRetry(ctx, fmt.Errorf("%s:obtain:%s", r.opt.Prefix, key).Error(), 3, 3, 1)
+	obtain, err := r.lock.ObtainWaitRetry(ctx, fmt.Sprintf("%s:obtain:%s", r.opt.Prefix, key), 5, 3, 1)
 	if err != nil {
 		lg.Errorf("obtain failed, err: %v", err)
 		return err
@@ -120,13 +120,13 @@ func (r *RepositoryCache) FindOne(ctx context.Context, entity interface{}, filte
 		_ = obtain.Release(ctx)
 	}()
 
-	err = r.getFromCache(ctx, entity, key)
-	if errors.Is(err, mongo.ErrNoDocuments) {
-		return mongo.ErrNoDocuments
-	}
-	if err == nil {
-		return nil
-	}
+	// err = r.getFromCache(ctx, entity, key)
+	// if errors.Is(err, mongo.ErrNoDocuments) {
+	// 	return mongo.ErrNoDocuments
+	// }
+	// if err == nil {
+	// 	return nil
+	// }
 
 	err = r.Repository.FindOne(ctx, entity, filter)
 	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {

@@ -3,10 +3,10 @@ package lock
 import (
 	"context"
 	"errors"
-	"github.com/redis/go-redis/v9"
 	"time"
 
 	"github.com/bsm/redislock"
+	"github.com/redis/go-redis/v9"
 )
 
 type Locker struct {
