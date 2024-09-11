@@ -3,7 +3,6 @@ package loggerMiddleware
 import (
 	"bytes"
 	"fmt"
-	"github.com/google/uuid"
 	"io/ioutil"
 	"net/http"
 	"runtime/debug"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -70,11 +70,9 @@ func LoggerMiddleware() gin.HandlerFunc {
 		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 		c.Writer = blw
 		reqUri := c.Request.RequestURI
-		uid := c.Request.Header.Get("_uid")
 
 		lg := GetMiddleWareLogger().WithFields(logrus.Fields{
 			"uri": reqUri,
-			"uid": uid,
 		})
 
 		defer func() {
@@ -98,6 +96,7 @@ func LoggerMiddleware() gin.HandlerFunc {
 		reqMethod := c.Request.Method
 		clientIP := c.ClientIP()
 		statusCode := c.Writer.Status()
+		uid := c.Request.Header.Get("_uid")
 
 		lg.WithFields(logrus.Fields{
 			"reqTime":    startT.Format("2006-01-02 15:04:05"),
@@ -107,6 +106,7 @@ func LoggerMiddleware() gin.HandlerFunc {
 			"req":        string(req),
 			"res":        blw.body.String(),
 			"opId":       opId,
+			"uid":        uid,
 			"statusCode": statusCode,
 		}).Info("请求日志")
 	}
