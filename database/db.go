@@ -55,7 +55,7 @@ func (m *MongoDB) Ping(ctx context.Context) {
 	}
 }
 
-func (m *MongoDB) GetDatabase(name string) *mongo.Database {
+func (m *MongoDB) GetDatabase() *mongo.Database {
 	return m.db
 }
 
