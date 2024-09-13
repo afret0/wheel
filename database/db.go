@@ -19,7 +19,7 @@ type MongoDB struct {
 
 //var m *MongoDB
 
-func GetMongoDB(opt *options.ClientOptions) *MongoDB {
+func GetMongoDB(opt *options.ClientOptions, database string) *MongoDB {
 	//if m != nil {
 	//	return m
 	//}
@@ -27,6 +27,7 @@ func GetMongoDB(opt *options.ClientOptions) *MongoDB {
 	m := new(MongoDB)
 	m.logger = log.GetLogger()
 	m.client = m.newClient(context.Background(), opt)
+	m.db = m.client.Database(database)
 
 	return m
 }
@@ -54,22 +55,30 @@ func (m *MongoDB) Ping(ctx context.Context) {
 	}
 }
 
-func (m *MongoDB) GetDatabase(name ...string) *mongo.Database {
-	if m.db == nil {
-		m.db = m.client.Database("guoguo")
-		if len(name) > 0 {
-			m.db = m.client.Database(name[0])
-		}
-	}
+func (m *MongoDB) GetDatabase(name string) *mongo.Database {
 	return m.db
 }
 
-func (m *MongoDB) GetCollection(col string) *mongo.Collection {
-	if m.db == nil {
-		m.db = m.GetDatabase()
-	}
-	return m.db.Collection(col)
+func (m *MongoDB) GetCollection(collectionName string) *mongo.Collection {
+	return m.db.Collection(collectionName)
 }
+
+// func (m *MongoDB) GetDatabase(name ...string) *mongo.Database {
+// 	if m.db == nil {
+// 		m.db = m.client.Database("guoguo")
+// 		if len(name) > 0 {
+// 			m.db = m.client.Database(name[0])
+// 		}
+// 	}
+// 	return m.db
+// }
+
+// func (m *MongoDB) GetCollection(col string) *mongo.Collection {
+// 	if m.db == nil {
+// 		m.db = m.GetDatabase()
+// 	}
+// 	return m.db.Collection(col)
+// }
 
 func (m *MongoDB) Disconnect() {
 	err := m.client.Disconnect(context.Background())

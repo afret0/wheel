@@ -2,11 +2,13 @@ package database
 
 import (
 	"context"
-	"github.com/afret0/wheel/log"
+	"reflect"
+
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"reflect"
+
+	"github.com/afret0/wheel/log"
 )
 
 type Repository struct {
