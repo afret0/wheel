@@ -1,6 +1,7 @@
 package tool
 
 import (
+	"encoding/json"
 	"errors"
 	"reflect"
 )
@@ -35,4 +36,9 @@ func MergeByReflection(from interface{}, to interface{}) error {
 	}
 
 	return nil
+}
+
+func MarshalWithoutErr(v interface{}) string {
+	b, _ := json.Marshal(v)
+	return string(b)
 }
