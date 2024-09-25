@@ -44,7 +44,7 @@ func (l *Locker) Obtain(ctx context.Context, key string, ttl int, opt ...*redisl
 }
 
 func (l *Locker) ObtainWaitRetry(ctx context.Context, key string, ttl int, retryCount int, retryDelay int) (*redislock.Lock, error) {
-	timeoutCtx, cancel := context.WithTimeout(ctx, time.Duration(retryDelay*retryCount)*time.Second)
+	timeoutCtx, cancel := context.WithTimeout(ctx, time.Duration(retryDelay*retryCount)*time.Second+1)
 	defer cancel()
 
 	for {
