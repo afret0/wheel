@@ -25,7 +25,7 @@ type RepositoryCache struct {
 
 var ErrCacheMiss = errors.New("cache miss")
 
-func (r *RepositoryCache) genCacheK(filter interface{}) (string, error) {
+func (r *RepositoryCache) GenCacheK(filter interface{}) (string, error) {
 	fs, err := json.Marshal(filter)
 	if err != nil {
 		return "", err
@@ -95,7 +95,7 @@ func (r *RepositoryCache) FindOne(ctx context.Context, entity interface{}, filte
 		opt = opts[0]
 	}
 
-	key, err := r.genCacheK(filter)
+	key, err := r.GenCacheK(filter)
 	if err != nil {
 		lg.Errorf("gen cache key failed, err: %v", err)
 		return err
@@ -163,7 +163,7 @@ func (r *RepositoryCache) FindOne(ctx context.Context, entity interface{}, filte
 func (r *RepositoryCache) UpdateOne(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
 	lg := log.CtxLogger(ctx).WithField("filter", filter)
 
-	key, err := r.genCacheK(filter)
+	key, err := r.GenCacheK(filter)
 	if err != nil {
 		lg.Errorf("gen cache key failed, err: %v", err)
 		return nil, err
@@ -192,7 +192,7 @@ func (r *RepositoryCache) UpdateMany(ctx context.Context, filter interface{}, up
 func (r *RepositoryCache) FindOneAndUpdate(ctx context.Context, entity interface{}, filter interface{}, update interface{}, opts ...*options.FindOneAndUpdateOptions) error {
 	lg := log.CtxLogger(ctx).WithField("filter", filter)
 
-	key, err := r.genCacheK(filter)
+	key, err := r.GenCacheK(filter)
 	if err != nil {
 		lg.Errorf("gen cache key failed, err: %v", err)
 		return err
@@ -222,7 +222,7 @@ func (r *RepositoryCache) DeleteMany(ctx context.Context, filter interface{}, op
 
 func (r *RepositoryCache) DeleteOne(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
 	lg := log.CtxLogger(ctx).WithField("filter", filter)
-	key, err := r.genCacheK(filter)
+	key, err := r.GenCacheK(filter)
 	if err != nil {
 		lg.Errorf("gen cache key failed, err: %v", err)
 		return nil, err
