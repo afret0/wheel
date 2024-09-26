@@ -41,7 +41,7 @@ if [ -f "/root/.zshrc" ]; then
 fi
 
 # 下载 .zshrc
-wget -P /root https://raw.githubusercontent.com/kong5664546498/wheel/main/onekey-omzsh/.zshrc
+wget -P /root https://raw.githubusercontent.com/afret0/wheel/refs/heads/main/onekey-omzsh/.zshrc
 # ===================================
 
 
