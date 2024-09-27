@@ -70,9 +70,11 @@ func LoggerMiddleware() gin.HandlerFunc {
 		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 		c.Writer = blw
 		reqUri := c.Request.RequestURI
+		token := c.GetHeader("token")
 
 		lg := GetMiddleWareLogger().WithFields(logrus.Fields{
-			"uri": reqUri,
+			"uri":   reqUri,
+			"token": token,
 		})
 
 		defer func() {
