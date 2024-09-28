@@ -111,15 +111,15 @@ func (r *RepositoryCache) FindOne(ctx context.Context, entity interface{}, filte
 		return nil
 	}
 
-	obtain, err := r.lock.ObtainWaitRetry(ctx, fmt.Sprintf("%s:obtain:%s", r.opt.Prefix, key), 5, 3, 1)
-	if err != nil {
-		lg.Errorf("obtain failed, err: %v", err)
-		return err
-	}
-	defer func() {
-		_ = obtain.Release(ctx)
-	}()
-
+	//obtain, err := r.lock.ObtainWaitRetry(ctx, fmt.Sprintf("%s:obtain:%s", r.opt.Prefix, key), 5, 3, 1)
+	//if err != nil {
+	//	lg.Errorf("obtain failed, err: %v", err)
+	//	return err
+	//}
+	//defer func() {
+	//	_ = obtain.Release(ctx)
+	//}()
+	//
 	// err = r.getFromCache(ctx, entity, key)
 	// if errors.Is(err, mongo.ErrNoDocuments) {
 	// 	return mongo.ErrNoDocuments
