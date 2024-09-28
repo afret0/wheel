@@ -111,7 +111,7 @@ func (r *RepositoryCache) FindOne(ctx context.Context, entity interface{}, filte
 		return nil
 	}
 
-	//obtain, err := r.lock.ObtainWaitRetry(ctx, fmt.Sprintf("%s:obtain:%s", r.opt.Prefix, key), 5, 3, 1)
+	//obtain, err := r.lock.ObtainWaitRetry(ctx, fmt.Sprintf("%s:obtain:%s", r.opt.Prefix, key), 1, 3, 1)
 	//if err != nil {
 	//	lg.Errorf("obtain failed, err: %v", err)
 	//	return err
