@@ -43,30 +43,34 @@ func (l *Locker) Obtain(ctx context.Context, key string, ttl int, opt ...*redisl
 	return l.Locker.Obtain(ctx, key, t, optN)
 }
 
-func (l *Locker) ObtainWaitRetry(ctx context.Context, key string, ttl int, retryCount int, retryDelay int) (*redislock.Lock, error) {
-	timeoutCtx, cancel := context.WithTimeout(ctx, time.Duration(retryDelay*retryCount)*time.Second+1)
-	defer cancel()
-
-	for {
-		select {
-		case <-timeoutCtx.Done():
-			// If the context is done (because of the timeout), return an error
-			return nil, errors.New("timeout while trying to obtain the lock")
-		default:
-			// Try to obtain the lock
-			lock, err := l.Locker.Obtain(ctx, key, time.Duration(ttl)*time.Second, nil)
-			if err != nil {
-				if errors.Is(err, redislock.ErrNotObtained) {
-					// If the lock is not obtained, wait for a while before trying again
-					time.Sleep(time.Duration(retryDelay) * time.Second)
-					continue
-				}
-				// If there is another error, return it
-				return nil, err
-			}
-
-			// If the lock is obtained, return it
-			return lock, nil
-		}
-	}
+func (l *Locker) ObtainWaitRetry(ctx context.Context, key string, ttl int, retryCount int) (*redislock.Lock, error) {
+	backoff := redislock.LimitRetry(redislock.LinearBackoff(100*time.Millisecond), retryCount)
+	return l.Locker.Obtain(ctx, key, time.Duration(ttl)*time.Second, &redislock.Options{
+		RetryStrategy: backoff,
+	})
+	//timeoutCtx, cancel := context.WithTimeout(ctx, time.Duration(retryDelay*retryCount)*time.Second+1)
+	//defer cancel()
+	//
+	//for {
+	//	select {
+	//	case <-timeoutCtx.Done():
+	//		// If the context is done (because of the timeout), return an error
+	//		return nil, errors.New("timeout while trying to obtain the lock")
+	//	default:
+	//		// Try to obtain the lock
+	//		lock, err := l.Locker.Obtain(ctx, key, time.Duration(ttl)*time.Second, nil)
+	//		if err != nil {
+	//			if errors.Is(err, redislock.ErrNotObtained) {
+	//				// If the lock is not obtained, wait for a while before trying again
+	//				time.Sleep(time.Duration(retryDelay) * time.Second)
+	//				continue
+	//			}
+	//			// If there is another error, return it
+	//			return nil, err
+	//		}
+	//
+	//		// If the lock is obtained, return it
+	//		return lock, nil
+	//	}
+	//}
 }
