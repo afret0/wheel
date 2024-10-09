@@ -74,3 +74,10 @@ func (l *Locker) ObtainWaitRetry(ctx context.Context, key string, ttl int, retry
 	//	}
 	//}
 }
+
+func (l *Locker) ObtainWaitExponentialRetry(ctx context.Context, key string, ttl int, maxWaitTime int) (*redislock.Lock, error) {
+	backoff := redislock.LimitRetry(redislock.ExponentialBackoff(100*time.Millisecond, time.Duration(maxWaitTime)*time.Millisecond), -1)
+	return l.Locker.Obtain(ctx, key, time.Duration(ttl)*time.Second, &redislock.Options{
+		RetryStrategy: backoff,
+	})
+}
