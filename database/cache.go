@@ -40,6 +40,8 @@ type RepositoryCacheOption struct {
 	Debug  bool
 }
 
+type RCO = RepositoryCacheOption
+
 func GetRepositoryCache(repo *Repository, cache redis.UniversalClient, opt *RepositoryCacheOption) *RepositoryCache {
 
 	if opt.Prefix == "" {
