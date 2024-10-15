@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc/status"
 
-	sErr "github.com/afret0/wheel/frame/frameErr"
+	sErr "github.com/afret0/wheel/v2/frame/frameErr"
 )
 
 var router *Router

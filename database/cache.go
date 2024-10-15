@@ -11,8 +11,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/afret0/wheel/lock"
-	"github.com/afret0/wheel/log"
+	"github.com/afret0/wheel/v2/lock"
+	"github.com/afret0/wheel/v2/log"
 )
 
 type RepositoryCache struct {

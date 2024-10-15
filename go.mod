@@ -1,4 +1,4 @@
-module github.com/afret0/wheel
+module github.com/afret0/wheel/v2
 
 go 1.22.4
 

@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 
-	"github.com/afret0/wheel/log"
+	"github.com/afret0/wheel/v2/log"
 )
 
 type MongoDB struct {
