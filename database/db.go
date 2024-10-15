@@ -17,9 +17,12 @@ type MongoDB struct {
 	db     *mongo.Database
 }
 
-//var m *MongoDB
-
+// Deprecated: GetMongoDB 方法已废弃，请使用 NewMongoDB 直接创建实例。
 func GetMongoDB(opt *options.ClientOptions, database string) *MongoDB {
+	return NewMongoDB(opt, database)
+}
+
+func NewMongoDB(opt *options.ClientOptions, database string) *MongoDB {
 	//if m != nil {
 	//	return m
 	//}
@@ -61,6 +64,10 @@ func (m *MongoDB) GetDatabase() *mongo.Database {
 
 func (m *MongoDB) GetCollection(collectionName string) *mongo.Collection {
 	return m.db.Collection(collectionName)
+}
+
+func (m *MongoDB) GetClient() *mongo.Client {
+	return m.client
 }
 
 // func (m *MongoDB) GetDatabase(name ...string) *mongo.Database {
