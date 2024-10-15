@@ -80,8 +80,8 @@ func (r *Repository) UpdateMany(ctx context.Context, filter interface{}, update 
 	return result, nil
 }
 
-func (r *Repository) InsertOne(ctx context.Context, entity interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
-	result, err := r.collection.InsertOne(ctx, entity, opts...)
+func (r *Repository) InsertOne(ctx context.Context, doc interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
+	result, err := r.collection.InsertOne(ctx, doc, opts...)
 	if err != nil {
 		return nil, err
 	}

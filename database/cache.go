@@ -67,7 +67,7 @@ func GetRepositoryCache(repo *Repository, cache redis.UniversalClient, opt *Repo
 //}
 
 func (r *RepositoryCache) getFromCache(ctx context.Context, entity interface{}, key string) error {
-	lg := log.CtxLogger(ctx)
+	//lg := log.CtxLogger(ctx)
 
 	ret, _ := r.cache.Get(ctx, key).Result()
 	if ret == "" {
@@ -80,18 +80,18 @@ func (r *RepositoryCache) getFromCache(ctx context.Context, entity interface{}, 
 
 	err := json.Unmarshal([]byte(ret), entity)
 	if err != nil {
-		lg.Errorf("json unmarshal failed, err: %v", err)
+		//lg.Errorf("json unmarshal failed, err: %v", err)
 		return err
 	}
 
 	if r.debug {
-		lg.Infof("cache hit, key: %s", key)
+		log.GetLogger().Infof("cache hit, key: %s", key)
 	}
 	return nil
 }
 
 func (r *RepositoryCache) FindOne(ctx context.Context, entity interface{}, filter interface{}, opts ...*RepositoryCacheOption) error {
-	lg := log.CtxLogger(ctx).WithField("filter", filter)
+	//lg := log.CtxLogger(ctx).WithField("filter", filter)
 	opt := r.opt
 	if len(opts) > 1 {
 		opt = opts[0]
@@ -99,7 +99,7 @@ func (r *RepositoryCache) FindOne(ctx context.Context, entity interface{}, filte
 
 	key, err := r.GenCacheK(filter)
 	if err != nil {
-		lg.Errorf("gen cache key failed, err: %v", err)
+		//lg.Errorf("gen cache key failed, err: %v", err)
 		return err
 	}
 
@@ -132,42 +132,42 @@ func (r *RepositoryCache) FindOne(ctx context.Context, entity interface{}, filte
 
 	err = r.Repository.FindOne(ctx, entity, filter)
 	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-		lg.Errorf("find one failed, err: %v", err)
+		//lg.Errorf("find one failed, err: %v", err)
 		return err
 	}
 
 	if errors.Is(err, mongo.ErrNoDocuments) {
-		err = r.cache.Set(ctx, key, err.Error(), time.Duration(opt.TTL)*time.Second).Err()
-		if err != nil {
-			lg.Errorf("cache set failed, err: %v", err)
-		}
+		_ = r.cache.Set(ctx, key, err.Error(), time.Duration(opt.TTL)*time.Second).Err()
+		//if err != nil {
+		//lg.Errorf("cache set failed, err: %v", err)
+		//}
 		return mongo.ErrNoDocuments
 	}
 
 	bs, err := json.Marshal(entity)
 	if err != nil {
-		lg.Errorf("json marshal failed, err: %v", err)
+		//lg.Errorf("json marshal failed, err: %v", err)
 		return err
 	}
 
 	err = r.cache.Set(ctx, key, bs, time.Duration(opt.TTL)*time.Second).Err()
 	if err != nil {
-		lg.Errorf("cache set failed, err: %v", err)
+		//lg.Errorf("cache set failed, err: %v", err)
 	}
 
 	if r.debug {
-		lg.Infof("cache miss, key: %s", key)
+		log.GetLogger().Infof("cache miss, key: %s", key)
 	}
 
 	return nil
 }
 
 func (r *RepositoryCache) UpdateOne(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
-	lg := log.CtxLogger(ctx).WithField("filter", filter)
+	//lg := log.CtxLogger(ctx).WithField("filter", filter)
 
 	key, err := r.GenCacheK(filter)
 	if err != nil {
-		lg.Errorf("gen cache key failed, err: %v", err)
+		//lg.Errorf("gen cache key failed, err: %v", err)
 		return nil, err
 	}
 	defer func() {
@@ -176,7 +176,7 @@ func (r *RepositoryCache) UpdateOne(ctx context.Context, filter interface{}, upd
 
 	result, err := r.Repository.UpdateOne(ctx, filter, update, opts...)
 	if err != nil {
-		lg.Errorf("update one failed, err: %v", err)
+		//lg.Errorf("update one failed, err: %v", err)
 		return nil, err
 	}
 
@@ -192,11 +192,11 @@ func (r *RepositoryCache) UpdateMany(ctx context.Context, filter interface{}, up
 }
 
 func (r *RepositoryCache) FindOneAndUpdate(ctx context.Context, entity interface{}, filter interface{}, update interface{}, opts ...*options.FindOneAndUpdateOptions) error {
-	lg := log.CtxLogger(ctx).WithField("filter", filter)
+	//lg := log.CtxLogger(ctx).WithField("filter", filter)
 
 	key, err := r.GenCacheK(filter)
 	if err != nil {
-		lg.Errorf("gen cache key failed, err: %v", err)
+		//lg.Errorf("gen cache key failed, err: %v", err)
 		return err
 	}
 
@@ -207,15 +207,25 @@ func (r *RepositoryCache) FindOneAndUpdate(ctx context.Context, entity interface
 	one := r.collection.FindOneAndUpdate(ctx, filter, update, opts...)
 	err = one.Decode(entity)
 	if err != nil {
-		lg.Errorf("find one and update failed, err: %v", err)
+		//lg.Errorf("find one and update failed, err: %v", err)
 		return err
 	}
 
 	return nil
 }
 
-func (r *RepositoryCache) InsertOne(ctx context.Context, entity interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
-	return nil, fmt.Errorf("无法刷新缓存, 需要单独处理")
+func (r *RepositoryCache) InsertOne(ctx context.Context, doc interface{}, filter interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
+	key, err := r.GenCacheK(filter)
+	if err != nil {
+		//lg.Errorf("gen cache key failed, err: %v", err)
+		return nil, err
+	}
+
+	defer func() {
+		r.DelCache(ctx, key)
+	}()
+
+	return r.Repository.InsertOne(ctx, doc, opts...)
 }
 
 func (r *RepositoryCache) DeleteMany(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
@@ -223,10 +233,10 @@ func (r *RepositoryCache) DeleteMany(ctx context.Context, filter interface{}, op
 }
 
 func (r *RepositoryCache) DeleteOne(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
-	lg := log.CtxLogger(ctx).WithField("filter", filter)
+	//lg := log.CtxLogger(ctx).WithField("filter", filter)
 	key, err := r.GenCacheK(filter)
 	if err != nil {
-		lg.Errorf("gen cache key failed, err: %v", err)
+		//lg.Errorf("gen cache key failed, err: %v", err)
 		return nil, err
 	}
 
