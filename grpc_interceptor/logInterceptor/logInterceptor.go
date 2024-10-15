@@ -63,6 +63,7 @@ func Interceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInf
 			uid = val[0]
 		}
 	}
+	ctx = context.WithValue(ctx, "opId", opId)
 
 	clientIP := ""
 	if p, ok := peer.FromContext(ctx); ok {

@@ -58,3 +58,10 @@ func GetErrs(err error) *Item {
 	}
 	return nil
 }
+
+func IsFrameErr(err error) bool {
+	if GetErrs(err) != nil {
+		return true
+	}
+	return false
+}
