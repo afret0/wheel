@@ -248,3 +248,11 @@ func (r *RepositoryCache) DelCache(ctx context.Context, key string) {
 		r.cache.Del(context.Background(), key)
 	}()
 }
+
+func (r *RepositoryCache) DelCacheByFilter(ctx context.Context, filter interface{}) {
+	key, err := r.GenCacheK(filter)
+	if err != nil {
+		return
+	}
+	r.DelCache(ctx, key)
+}
