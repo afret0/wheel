@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/afret0/wheel/v2/log"
+	"github.com/afret0/wheel/log"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"

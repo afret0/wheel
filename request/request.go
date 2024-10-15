@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/afret0/wheel/v2/log"
+	"github.com/afret0/wheel/log"
 )
 
 //type RetryOpt struct {
