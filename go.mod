@@ -1,8 +1,9 @@
-module github.com/afret0/wheel
+module github.com/afret0/wheel/v2
 
 go 1.22.4
 
 require (
+	github.com/afret0/wheel v1.9.2
 	github.com/bsm/redislock v0.9.4
 	github.com/getsentry/sentry-go v0.27.0
 	github.com/gin-gonic/gin v1.10.0
