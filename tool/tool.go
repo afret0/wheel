@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 )
 
 func GetEnv() string {
@@ -81,4 +82,13 @@ func SecondsUntilMidnight() int64 {
 	duration := midnight.Sub(now)
 	// 返回时间差的秒数
 	return int64(duration.Seconds())
+}
+
+func IsLetter(s string) bool {
+	for _, r := range s {
+		if !unicode.IsLetter(r) {
+			return false
+		}
+	}
+	return true
 }
