@@ -75,6 +75,8 @@ func LoggerMiddleware() gin.HandlerFunc {
 		lg := GetMiddleWareLogger().WithFields(logrus.Fields{
 			"uri":   reqUri,
 			"token": token,
+			"req":   string(req),
+			"opId":  opId,
 		})
 
 		defer func() {
@@ -105,9 +107,7 @@ func LoggerMiddleware() gin.HandlerFunc {
 			"latencyT":   latencyT.Milliseconds(),
 			"method":     reqMethod,
 			"clientIP":   clientIP,
-			"req":        string(req),
 			"res":        blw.body.String(),
-			"opId":       opId,
 			"uid":        uid,
 			"statusCode": statusCode,
 		}).Info("请求日志")
