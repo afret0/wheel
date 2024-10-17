@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 )
 
 func GetEnv() string {
@@ -69,4 +70,13 @@ func OpIdWithoutDefault(ctx context.Context) string {
 func MergeByJson(from interface{}, to interface{}) {
 	fromJson, _ := json.Marshal(from)
 	_ = json.Unmarshal(fromJson, to)
+}
+
+func IsLetter(s string) bool {
+	for _, r := range s {
+		if !unicode.IsLetter(r) {
+			return false
+		}
+	}
+	return true
 }
