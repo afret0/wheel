@@ -2,6 +2,9 @@ package logInterceptor
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"github.com/getsentry/sentry-go"
 	"runtime/debug"
 	"strings"
 	"time"
@@ -82,6 +85,8 @@ func Interceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInf
 				"panic": r,
 				"stack": stack,
 			}).Error("Panic occurred")
+
+			go sentry.CaptureException(errors.New(fmt.Sprintf("Panic occurred: %s", stack)))
 
 			err = status.Errorf(codes.Internal, "Panic occurred: %v", r)
 			resp = nil

@@ -10,12 +10,10 @@ import (
 	"google.golang.org/grpc"
 )
 
-//func SentryInterceptor() grpc.UnaryServerInterceptor {
+// func SentryInterceptor() grpc.UnaryServerInterceptor {
 //
 //	return grpc_middleware.ChainUnaryServer(
 //		grpc_sentry.UnaryServerInterceptor(grpc_sentry.WithRepanicOption(true)))
-//}
-
 func SentryInterceptor() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
