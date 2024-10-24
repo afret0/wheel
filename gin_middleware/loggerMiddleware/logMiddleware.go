@@ -63,6 +63,7 @@ func LoggerMiddleware() gin.HandlerFunc {
 		}
 
 		c.Set("opId", opId)
+		c.Request.Header.Set("opId", opId)
 
 		startT := time.Now()
 		req, _ := c.GetRawData()
