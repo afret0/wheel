@@ -55,7 +55,12 @@ func formatStack(stack string) string {
 	return strings.Join(formatted, "\n")
 }
 
-func LoggerMiddleware() gin.HandlerFunc {
+type Option struct {
+	Service   string   `json:"service"`
+	WhiteList []string `json:"whiteList"`
+}
+
+func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		opId := c.GetHeader("opId")
 		if opId == "" {
@@ -79,6 +84,17 @@ func LoggerMiddleware() gin.HandlerFunc {
 			"req":   string(req),
 			"opId":  opId,
 		})
+
+		if len(opts) > 0 {
+			if opt := opts[0]; opt != nil && len(opt.WhiteList) > 0 {
+				for _, uri := range opt.WhiteList {
+					if strings.Contains(reqUri, uri) {
+						c.Next()
+						return
+					}
+				}
+			}
+		}
 
 		defer func() {
 
