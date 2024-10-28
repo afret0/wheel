@@ -54,7 +54,74 @@ import (
 //	return resp, err
 //}
 
-func Interceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+type Options struct {
+	Service        string `json:"service"`
+	ReportToSentry bool   `json:"reportToSentry"`
+}
+
+type Opt = Options
+
+func Interceptor(opts ...*Options) grpc.UnaryServerInterceptor {
+	opt := new(Options)
+	if len(opts) > 0 && opts[0] != nil {
+		opt = opts[0]
+	}
+
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+		opId := strings.ReplaceAll(uuid.New().String(), "-", "")
+		uid := ""
+		if md, ok := metadata.FromIncomingContext(ctx); ok {
+			if val, exists := md["opid"]; exists && len(val) > 0 {
+				opId = val[0]
+			}
+
+			if val, exists := md["_uid"]; exists && len(val) > 0 {
+				uid = val[0]
+			}
+		}
+		ctx = context.WithValue(ctx, "opId", opId)
+
+		clientIP := ""
+		if p, ok := peer.FromContext(ctx); ok {
+			clientIP = p.Addr.String()
+		}
+
+		startT := time.Now()
+
+		lg := log.GetMiddleWareLogger().WithFields(logrus.Fields{"opId": opId, "info": info, "clientIP": clientIP, "req": req, "_uid": uid})
+
+		defer func() {
+			if r := recover(); r != nil {
+				// 记录panic信息
+				stack := string(debug.Stack())
+				lg.WithFields(logrus.Fields{
+					"panic": r,
+					"stack": stack,
+				}).Error("Panic occurred")
+
+				if opt.ReportToSentry {
+					go sentry.CaptureException(errors.New(fmt.Sprintf("Panic occurred: %s", stack)))
+				}
+
+				err = status.Errorf(codes.Internal, "Panic occurred: %v", r)
+				resp = nil
+			}
+		}()
+
+		resp, err = handler(ctx, req)
+
+		endT := time.Now()
+		latencyT := endT.Sub(startT)
+		lg.WithFields(logrus.Fields{
+			"latencyT": latencyT.Milliseconds(),
+			"res":      resp,
+			"err":      err,
+		}).Info("请求日志")
+		return resp, err
+	}
+}
+
+func interceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	opId := strings.ReplaceAll(uuid.New().String(), "-", "")
 	uid := ""
 	if md, ok := metadata.FromIncomingContext(ctx); ok {

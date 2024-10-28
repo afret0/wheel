@@ -3,6 +3,7 @@ package loggerMiddleware
 import (
 	"bytes"
 	"fmt"
+	"github.com/getsentry/sentry-go"
 	"io/ioutil"
 	"net/http"
 	"runtime/debug"
@@ -56,11 +57,17 @@ func formatStack(stack string) string {
 }
 
 type Option struct {
-	Service   string   `json:"service"`
-	WhiteList []string `json:"whiteList"`
+	Service        string   `json:"service"`
+	WhiteList      []string `json:"whiteList"`
+	ReportToSentry bool     `json:"reportToSentry"`
 }
 
 func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
+	opt := new(Option)
+	if len(opts) > 0 && opts[0] != nil {
+		opt = opts[0]
+	}
+
 	return func(c *gin.Context) {
 		opId := c.GetHeader("opId")
 		if opId == "" {
@@ -85,14 +92,9 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 			"opId":  opId,
 		})
 
-		if len(opts) > 0 {
-			if opt := opts[0]; opt != nil && len(opt.WhiteList) > 0 {
-				for _, uri := range opt.WhiteList {
-					if strings.Contains(reqUri, uri) {
-						c.Next()
-						return
-					}
-				}
+		for _, uri := range opt.WhiteList {
+			if strings.Contains(reqUri, uri) {
+				return
 			}
 		}
 
@@ -105,8 +107,14 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 					"panic": r,
 					"stack": stackTrace,
 				}).Error("Panic occurred")
+
+				if opt.ReportToSentry {
+					go sentry.CaptureException(fmt.Errorf("panic occurred: %v, stack: %+v", r, stackTrace))
+				}
+
 				// 设置500状态码
 				c.AbortWithStatus(http.StatusInternalServerError)
+				return
 			}
 
 		}()
