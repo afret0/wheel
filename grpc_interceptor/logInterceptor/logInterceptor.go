@@ -54,15 +54,15 @@ import (
 //	return resp, err
 //}
 
-type Options struct {
+type Option struct {
 	Service        string `json:"service"`
 	ReportToSentry bool   `json:"reportToSentry"`
 }
 
-type Opt = Options
+type Opt = Option
 
-func Interceptor(opts ...*Options) grpc.UnaryServerInterceptor {
-	opt := new(Options)
+func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
+	opt := new(Option)
 	if len(opts) > 0 && opts[0] != nil {
 		opt = opts[0]
 	}
