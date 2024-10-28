@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/getsentry/sentry-go"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"runtime/debug"
 	"strings"
@@ -79,7 +79,7 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 
 		startT := time.Now()
 		req, _ := c.GetRawData()
-		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(req))
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(req))
 		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 		c.Writer = blw
 		reqUri := c.Request.RequestURI
