@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/getsentry/sentry-go"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"io"
 	"net/http"
 	"runtime/debug"
@@ -60,6 +62,7 @@ type Option struct {
 	Service        string   `json:"service"`
 	WhiteList      []string `json:"whiteList"`
 	ReportToSentry bool     `json:"reportToSentry"`
+	RePanic        bool     `json:"rePanic"`
 }
 
 func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
@@ -111,9 +114,14 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 				if opt.ReportToSentry {
 					go sentry.CaptureException(fmt.Errorf("panic occurred: %v, stack: %+v", r, stackTrace))
 				}
+				if opt.RePanic {
+					panic(r)
+				}
 
+				err := status.Errorf(codes.Internal, "Panic occurred: %#v, stack: %s", r, stackTrace)
 				// 设置500状态码
-				c.AbortWithStatus(http.StatusInternalServerError)
+				//c.AbortWithStatus(http.StatusInternalServerError)
+				c.JSON(http.StatusInternalServerError, gin.H{"code": 0, "message": err.Error()})
 				return
 			}
 

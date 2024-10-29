@@ -57,6 +57,7 @@ import (
 type Option struct {
 	Service        string `json:"service"`
 	ReportToSentry bool   `json:"reportToSentry"`
+	RePanic        bool   `json:"rePanic"`
 }
 
 type Opt = Option
@@ -103,7 +104,11 @@ func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 					go sentry.CaptureException(errors.New(fmt.Sprintf("Panic occurred: %s", stack)))
 				}
 
-				err = status.Errorf(codes.Internal, "Panic occurred: %v", r)
+				if opt.RePanic {
+					panic(r)
+				}
+
+				err = status.Errorf(codes.Internal, "Panic occurred: %#v, stack: %s", r, stack)
 				resp = nil
 			}
 		}()
