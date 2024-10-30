@@ -28,7 +28,7 @@ type slot struct {
 }
 
 type MethodMiddlewareSlot struct {
-	Method          string
+	//Method          string
 	MiddlewareChain []gin.HandlerFunc
 }
 
