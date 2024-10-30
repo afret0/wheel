@@ -101,6 +101,7 @@ outerLoop:
 
 		G.POST(fmt.Sprintf("/%s", method.Name), handler, middlewareChain...)
 	}
+	R.RegisterRouter(g.e)
 }
 
 // createHTTPHandler 创建处理 HTTP 请求的处理函数
