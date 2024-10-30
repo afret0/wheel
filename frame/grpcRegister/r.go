@@ -16,7 +16,8 @@ type GrpcController interface {
 }
 
 type Option struct {
-	PrefixWhiteList []string
+	PrefixWhiteList      []string
+	MethodMiddlewareSlot map[string]MethodMiddlewareSlot
 }
 
 type Opt = Option
@@ -26,10 +27,16 @@ type slot struct {
 	MiddlewareChain []gin.HandlerFunc
 }
 
+type MethodMiddlewareSlot struct {
+	Method          string
+	MiddlewareChain []gin.HandlerFunc
+}
+
 type GrpcRegister struct {
-	e    *gin.Engine
-	slot map[string]slot
-	opt  *Option
+	e                    *gin.Engine
+	slot                 map[string]slot
+	methodMiddlewareSlot map[string]MethodMiddlewareSlot
+	opt                  *Option
 }
 
 func NewGrpcRegister(e *gin.Engine, opts ...*Option) *GrpcRegister {
@@ -87,6 +94,11 @@ outerLoop:
 		handler := g.createHTTPHandler(ctrlValue, method)
 
 		// 注册路由，使用方法名作为路径
+		if slot, ok := g.opt.MethodMiddlewareSlot[method.Name]; ok {
+			R.POST(fmt.Sprintf("/%s", method.Name), handler, slot.MiddlewareChain...)
+			continue
+		}
+
 		R.POST(fmt.Sprintf("/%s", method.Name), handler, middlewareChain...)
 	}
 }
