@@ -21,9 +21,14 @@ type Option struct {
 
 type Opt = Option
 
+type slot struct {
+	GrpcController  GrpcController
+	MiddlewareChain []gin.HandlerFunc
+}
+
 type GrpcRegister struct {
 	e    *gin.Engine
-	slot map[string]GrpcController
+	slot map[string]slot
 	opt  *Option
 }
 
@@ -35,22 +40,26 @@ func NewGrpcRegister(e *gin.Engine, opts ...*Option) *GrpcRegister {
 
 	return &GrpcRegister{
 		e:    e,
-		slot: make(map[string]GrpcController),
+		slot: make(map[string]slot),
 		opt:  opt,
 	}
 }
 
-func (g *GrpcRegister) Register(serviceName string, ctrl GrpcController) {
-	g.slot[serviceName] = ctrl
-}
-
-func (g *GrpcRegister) RegisterGrpcControllerToGinRouter() {
-	for serviceName, ctrl := range g.slot {
-		g.registerGrpcControllerToGinRouter(serviceName, ctrl)
+func (g *GrpcRegister) Register(serviceName string, ctrl GrpcController, middlewareChain ...gin.HandlerFunc) {
+	//g.slot[serviceName] = ctrl
+	g.slot[serviceName] = slot{
+		GrpcController:  ctrl,
+		MiddlewareChain: middlewareChain,
 	}
 }
 
-func (g *GrpcRegister) registerGrpcControllerToGinRouter(serviceName string, ctrl GrpcController) {
+func (g *GrpcRegister) RegisterGrpcControllerToGinRouter() {
+	for serviceName, slot := range g.slot {
+		g.registerGrpcControllerToGinRouter(serviceName, slot.GrpcController, slot.MiddlewareChain...)
+	}
+}
+
+func (g *GrpcRegister) registerGrpcControllerToGinRouter(serviceName string, ctrl GrpcController, middlewareChain ...gin.HandlerFunc) {
 	// 获取 controller 的反射类型
 	ctrlType := reflect.TypeOf(ctrl)
 	ctrlValue := reflect.ValueOf(ctrl)
@@ -78,7 +87,7 @@ outerLoop:
 		handler := g.createHTTPHandler(ctrlValue, method)
 
 		// 注册路由，使用方法名作为路径
-		R.POST(fmt.Sprintf("/%s", method.Name), handler)
+		R.POST(fmt.Sprintf("/%s", method.Name), handler, middlewareChain...)
 	}
 }
 
