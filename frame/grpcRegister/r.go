@@ -71,8 +71,8 @@ func (g *GrpcRegister) registerGrpcControllerToGinRouter(serviceName string, ctr
 	ctrlType := reflect.TypeOf(ctrl)
 	ctrlValue := reflect.ValueOf(ctrl)
 
-	//R := router.GetRouter(g.e)
-	R := router.GetRouter(g.e).Group(fmt.Sprintf("/%s", serviceName))
+	R := router.GetRouter(g.e)
+	G := R.Group(fmt.Sprintf("/%s", serviceName))
 
 outerLoop:
 	// 遍历所有方法
@@ -99,7 +99,7 @@ outerLoop:
 			continue
 		}
 
-		R.POST(fmt.Sprintf("/%s", method.Name), handler, middlewareChain...)
+		G.POST(fmt.Sprintf("/%s", method.Name), handler, middlewareChain...)
 	}
 }
 
