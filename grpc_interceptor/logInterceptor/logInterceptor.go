@@ -105,7 +105,7 @@ func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 				}
 
 				if opt.RePanic {
-					panic(r)
+					panic(fmt.Sprintf("Panic occurred: %s, \nstack: %s", r, stack))
 				}
 
 				err = status.Errorf(codes.Internal, "Panic occurred: %#v, stack: %s", r, stack)

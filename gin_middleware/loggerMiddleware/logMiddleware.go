@@ -115,7 +115,7 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 					go sentry.CaptureException(fmt.Errorf("panic occurred: %v, stack: %+v", r, stackTrace))
 				}
 				if opt.RePanic {
-					panic(r)
+					panic(fmt.Sprintf("Panic occurred: %s, \nstack: %s", r, stackTrace))
 				}
 
 				err := status.Errorf(codes.Internal, "Panic occurred: %#v, stack: %s", r, stackTrace)
