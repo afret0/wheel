@@ -58,6 +58,7 @@ type Option struct {
 	Service        string `json:"service"`
 	ReportToSentry bool   `json:"reportToSentry"`
 	RePanic        bool   `json:"rePanic"`
+	Debug          bool   `json:"debug"`
 }
 
 type Opt = Option
@@ -92,6 +93,10 @@ func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 		lg := log.GetMiddleWareLogger().WithFields(logrus.Fields{"opId": opId, "info": info, "clientIP": clientIP, "req": req, "_uid": uid})
 
 		defer func() {
+			if opt.Debug {
+				return
+			}
+
 			if r := recover(); r != nil {
 				// 记录panic信息
 				stack := string(debug.Stack())
