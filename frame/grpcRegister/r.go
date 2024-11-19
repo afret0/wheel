@@ -1,7 +1,6 @@
 package grpcRegister
 
 import (
-	"context"
 	"fmt"
 	"github.com/afret0/wheel/frame/router"
 	"github.com/gin-gonic/gin"
@@ -130,7 +129,7 @@ func (g *GrpcRegister) createHTTPHandler(ctrl reflect.Value, method reflect.Meth
 		// 调用 controller 方法
 		results := method.Func.Call([]reflect.Value{
 			ctrl,
-			reflect.ValueOf(context.Background()),
+			reflect.ValueOf(c),
 			reqValue,
 		})
 
