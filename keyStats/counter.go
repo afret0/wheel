@@ -54,12 +54,12 @@ func NewCounter(opt *Option) *Counter {
 		redis: opt.Redis,
 		ttl:   opt.TTL,
 
-		secondK: fmt.Sprintf("%s:%s:counter:second", opt.Service, opt.Prefix),
-		minuteK: fmt.Sprintf("%s:%s:counter:minute", opt.Service, opt.Prefix),
-		hourK:   fmt.Sprintf("%s:%s:counter:hour", opt.Service, opt.Prefix),
-		dayK:    fmt.Sprintf("%s:%s:counter:day", opt.Service, opt.Prefix),
-		weekK:   fmt.Sprintf("%s:%s:counter:week", opt.Service, opt.Prefix),
-		monthK:  fmt.Sprintf("%s:%s:counter:month", opt.Service, opt.Prefix),
+		secondK: fmt.Sprintf("%s:%s:keyStats:second", opt.Service, opt.Prefix),
+		minuteK: fmt.Sprintf("%s:%s:keyStats:minute", opt.Service, opt.Prefix),
+		hourK:   fmt.Sprintf("%s:%s:keyStats:hour", opt.Service, opt.Prefix),
+		dayK:    fmt.Sprintf("%s:%s:keyStats:day", opt.Service, opt.Prefix),
+		weekK:   fmt.Sprintf("%s:%s:keyStats:week", opt.Service, opt.Prefix),
+		monthK:  fmt.Sprintf("%s:%s:keyStats:month", opt.Service, opt.Prefix),
 	}
 }
 
