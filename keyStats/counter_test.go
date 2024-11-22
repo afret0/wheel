@@ -14,7 +14,7 @@ func Test_counter(t *testing.T) {
 		Password: "Qiyiguo0621",
 	})
 
-	C := NewCount(&Option{
+	C := NewCounter(&Option{
 		Service: "wheel:test",
 		Prefix:  "counter",
 		TTL:     time.Duration(10) * time.Minute,

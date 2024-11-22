@@ -39,7 +39,7 @@ func (i *Item) Marshal() string {
 	return string(b)
 }
 
-func NewCount(opt *Option) *Counter {
+func NewCounter(opt *Option) *Counter {
 	if opt.Service == "" {
 		panic("service can not be empty")
 	}
