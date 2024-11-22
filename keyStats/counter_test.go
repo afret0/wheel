@@ -21,8 +21,9 @@ func Test_counter(t *testing.T) {
 		Redis:   RC,
 	})
 
-	for i := 0; i < 10; i++ {
-		C.Incr(context.Background(), &Item{Name: "test1"})
+	for i := 0; i < 100; i++ {
+		C.Incr(context.Background(), &Item{Name: "test"})
+		C.IncrBy(context.Background(), &Item{Name: "test2"}, 10)
 	}
 
 	time.Sleep(10 * time.Second)

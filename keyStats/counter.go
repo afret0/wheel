@@ -78,31 +78,26 @@ func (c *Counter) IncrBy(ctx context.Context, item *Item, score int64) {
 func (c *Counter) incrBy(ctx context.Context, item *Item, score int64) {
 	itemS := item.Marshal()
 	for _, v := range []string{c.secondK, c.minuteK, c.hourK, c.dayK, c.weekK, c.monthK} {
+		k := ""
 		switch v {
 		case c.secondK:
-			k := fmt.Sprintf("%s:%s", v, tool.Second())
-			c.redis.ZIncrBy(ctx, k, float64(score), itemS)
-			c.redis.Expire(ctx, k, c.ttl)
+			k = fmt.Sprintf("%s:%s", v, tool.Second())
 		case c.minuteK:
-			k := fmt.Sprintf("%s:%s", v, tool.Minute())
-			c.redis.ZIncrBy(ctx, k, float64(score), itemS)
-			c.redis.Expire(ctx, k, c.ttl)
+			k = fmt.Sprintf("%s:%s", v, tool.Minute())
 		case c.hourK:
-			k := fmt.Sprintf("%s:%s", v, tool.Hour())
-			c.redis.ZIncrBy(ctx, k, float64(score), itemS)
-			c.redis.Expire(ctx, k, c.ttl)
+			k = fmt.Sprintf("%s:%s", v, tool.Hour())
 		case c.dayK:
-			k := fmt.Sprintf("%s:%s", v, tool.Day())
-			c.redis.ZIncrBy(ctx, k, float64(score), itemS)
-			c.redis.Expire(ctx, k, c.ttl)
+			k = fmt.Sprintf("%s:%s", v, tool.Day())
 		case c.weekK:
-			k := fmt.Sprintf("%s:%s", v, tool.Week())
-			c.redis.ZIncrBy(ctx, k, float64(score), itemS)
-			c.redis.Expire(ctx, k, c.ttl)
+			k = fmt.Sprintf("%s:%s", v, tool.Week())
 		case c.monthK:
-			k := fmt.Sprintf("%s:%s", v, tool.Month())
-			c.redis.ZIncrBy(ctx, k, float64(score), itemS)
-			c.redis.Expire(ctx, k, c.ttl)
+			k = fmt.Sprintf("%s:%s", v, tool.Month())
 		}
+
+		kt := fmt.Sprintf("%s:total", k)
+		c.redis.ZIncrBy(ctx, k, float64(score), itemS)
+		c.redis.IncrBy(ctx, kt, score)
+		c.redis.Expire(ctx, k, c.ttl)
+		c.redis.Expire(ctx, kt, c.ttl)
 	}
 }
