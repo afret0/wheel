@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beijing Time and Timestamp</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Current Beijing Time and Timestamp</h1>
+    <div id="current-time"></div>
+    <div id="current-timestamp"></div>
+
+    <h2>Convert Timestamp to Time</h2>
+    <form id="timestamp-to-time-form">
+        <label for="timestamp-input">Timestamp:</label>
+        <input type="text" id="timestamp-input" required>
+        <button type="submit">Convert</button>
+    </form>
+    <div id="converted-time"></div>
+
+    <h2>Convert Time to Timestamp</h2>
+    <form id="time-to-timestamp-form">
+        <label for="time-input">Time (YYYY-MM-DD HH:MM:SS):</label>
+        <input type="text" id="time-input" required>
+        <button type="submit">Convert</button>
+    </form>
+    <div id="converted-timestamp"></div>
+
+    <script src="time.js"></script>
+</body>
+</html>
