@@ -29,6 +29,10 @@ func GetRepository(db *MongoDB, collection string) *Repository {
 	return r
 }
 
+func (r *Repository) Collection() *mongo.Collection {
+	return r.collection
+}
+
 func (r *Repository) FindOne(ctx context.Context, entity interface{}, filter interface{}, opts ...*options.FindOneOptions) error {
 	one := r.collection.FindOne(ctx, filter, opts...)
 	err := one.Decode(entity)
