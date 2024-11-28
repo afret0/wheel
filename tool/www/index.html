@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>tool</title>
+    <style>
+        /* 原有样式保持不变 */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #81B446;
+            color: #333333;
+        }
+
+        /* 添加导航栏样式 */
+        .sidebar {
+            width: 200px;
+            height: 100vh;
+            background-color: #81B446;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding-top: 20px;
+            color: white;
+        }
+
+        .sidebar h1 {
+            font-size: 20px;
+            padding: 0 20px;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            color: white;
+            text-decoration: none;
+            display: block;
+            text-align: left; /* 确保文本左对齐 */
+        }
+
+        .nav-item:hover {
+            background-color: #2A477A;
+        }
+
+        .nav-item.active {
+            background-color: #2A477A;
+            border-left: 4px solid #5F383C;
+            /* 如果添加了左边框，可能需要调整padding */
+            padding-left: 16px; /* 20px - 4px(border) = 16px */
+        }
+
+        /* 修改主内容区域样式 */
+        .main-content {
+            margin-left: 200px;
+            padding: 20px;
+            max-width: 800px;
+            margin-right: auto;
+        }
+
+        /* 其他原有样式 */
+        .container {
+            background-color: #F5F5F0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #FFF2CC;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+
+        h2 {
+            color: #444444;
+            margin-bottom: 15px;
+        }
+
+        .timestamp {
+            font-size: 18px;
+            font-weight: bold;
+            color: #345995;
+            font-family: monospace;
+            min-width: 200px;
+            display: inline-block;
+            text-align: left;
+        }
+
+        input, button {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #FCFFE9;
+        }
+
+        button {
+            background-color: #345995;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2A477A;
+        }
+
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #FDE0D9;
+            border-radius: 4px;
+            text-align: left;
+        }
+
+        .result-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 5px 0;
+        }
+
+        .timestamp-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .label {
+            min-width: 120px;
+            display: inline-block;
+        }
+
+        .copy-button {
+            padding: 4px 8px;
+            font-size: 14px;
+            background-color: #3C8C7C;
+        }
+
+        .copy-button:hover {
+            background-color: #2F6F62;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 80px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -40px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+
+        .tooltip .tooltiptext.show {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+<!-- 添加侧边导航栏 -->
+<div class="sidebar">
+    <h1>tool</h1>
+    <a href="index.html" class="nav-item active">timestamp</a>
+    <a href="index.html" class="nav-item">base64</a>
+    <!-- 可以继续添加更多导航项 -->
+</div>
+
+<!-- 主要内容区域 -->
+<div class="main-content">
+    <div class="container">
+        <div class="section">
+            <h2>当前时间戳</h2>
+            <div>
+                <div class="timestamp-container">
+                    <span class="label">秒级时间戳: </span>
+                    <span id="secondTimestamp" class="timestamp"></span>
+                    <div class="tooltip">
+                        <button onclick="copyTimestamp('secondTimestamp')" class="copy-button">复制</button>
+                        <span class="tooltiptext" id="secondTooltip">已复制!</span>
+                    </div>
+                </div>
+                <div class="timestamp-container">
+                    <span class="label">毫秒级时间戳: </span>
+                    <span id="millisecondTimestamp" class="timestamp"></span>
+                    <div class="tooltip">
+                        <button onclick="copyTimestamp('millisecondTimestamp')" class="copy-button">复制</button>
+                        <span class="tooltiptext" id="millisecondTooltip">已复制!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>时间戳转日期</h2>
+            <input type="number" id="timestamp" placeholder="请输入时间戳">
+            <select id="timestampType">
+                <option value="millisecond">毫秒</option>
+                <option value="second">秒</option>
+            </select>
+            <button onclick="timestampToDate()">转换为日期</button>
+            <div class="result">
+                <div class="result-container">
+                    <span id="dateResult" class="timestamp"></span>
+                    <div class="tooltip" id="dateResultContainer" style="display: none;">
+                        <button onclick="copyResult('dateResult')" class="copy-button">复制</button>
+                        <span class="tooltiptext" id="dateTooltip">已复制!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>日期转时间戳</h2>
+            <input type="datetime-local" id="datetime" step="1">
+            <button onclick="dateToTimestamp()">转换为时间戳</button>
+            <div class="result">
+                <div class="result-container">
+                    <span class="label">秒级时间戳: </span>
+                    <span id="secondsResult" class="timestamp"></span>
+                    <div class="tooltip">
+                        <button onclick="copyResult('secondsResult')" class="copy-button">复制</button>
+                        <span class="tooltiptext" id="secondsTooltip">已复制!</span>
+                    </div>
+                </div>
+                <div class="result-container">
+                    <span class="label">毫秒级时间戳: </span>
+                    <span id="millisecondsResult" class="timestamp"></span>
+                    <div class="tooltip">
+                        <button onclick="copyResult('millisecondsResult')" class="copy-button">复制</button>
+                        <span class="tooltiptext" id="millisecondsTooltip">已复制!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript 代码保持不变 -->
+<script>
+    // 这里是原有的所有 JavaScript 代码，保持不变
+    // 更新当前时间戳
+    function updateTimestamp() {
+        const now = new Date();
+        document.getElementById('secondTimestamp').textContent = Math.floor(now.getTime() / 1000);
+        document.getElementById('millisecondTimestamp').textContent = now.getTime();
+    }
+
+    // 复制时间戳功能
+    async function copyTimestamp(elementId) {
+        const text = document.getElementById(elementId).textContent;
+        const tooltipId = elementId === 'secondTimestamp' ? 'secondTooltip' : 'millisecondTooltip';
+
+        try {
+            await navigator.clipboard.writeText(text);
+            showTooltip(tooltipId);
+        } catch (err) {
+            console.error('复制失败:', err);
+        }
+    }
+
+    // 显示提示框
+    function showTooltip(tooltipId) {
+        const tooltip = document.getElementById(tooltipId);
+        tooltip.classList.add('show');
+        setTimeout(() => {
+            tooltip.classList.remove('show');
+        }, 1500);
+    }
+
+    // 时间戳转日期
+    function timestampToDate() {
+        const timestamp = document.getElementById('timestamp').value;
+        const type = document.getElementById('timestampType').value;
+        let date;
+
+        if (type === 'second') {
+            date = new Date(timestamp * 1000);
+        } else {
+            date = new Date(parseInt(timestamp));
+        }
+
+        const formatted = formatDate(date);
+        document.getElementById('dateResult').textContent = formatted;
+        document.getElementById('dateResultContainer').style.display = 'inline-block';
+    }
+
+    // 日期转时间戳
+    function dateToTimestamp() {
+        const datetimeStr = document.getElementById('datetime').value;
+        const date = new Date(datetimeStr);
+        const milliseconds = date.getTime();
+        const seconds = Math.floor(milliseconds / 1000);
+
+        document.getElementById('secondsResult').textContent = seconds;
+        document.getElementById('millisecondsResult').textContent = milliseconds;
+    }
+
+    // 复制结果
+    async function copyResult(elementId) {
+        const text = document.getElementById(elementId).textContent;
+        let tooltipId;
+
+        switch (elementId) {
+            case 'dateResult':
+                tooltipId = 'dateTooltip';
+                break;
+            case 'secondsResult':
+                tooltipId = 'secondsTooltip';
+                break;
+            case 'millisecondsResult':
+                tooltipId = 'millisecondsTooltip';
+                break;
+        }
+
+        try {
+            await navigator.clipboard.writeText(text);
+            showTooltip(tooltipId);
+        } catch (err) {
+            console.error('复制失败:', err);
+        }
+    }
+
+    // 格式化日期
+    function formatDate(date) {
+        const pad = (num) => String(num).padStart(2, '0');
+
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+            `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+    }
+
+    // 每秒更新时间戳
+    updateTimestamp();
+    setInterval(updateTimestamp, 1000);
+
+    // 设置datetime-local输入框的默认值为当前时间
+    const now = new Date();
+    const nowStr = now.toISOString().slice(0, 19);
+    document.getElementById('datetime').value = nowStr;
+</script>
+</body>
+</html>
