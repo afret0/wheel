@@ -10,6 +10,13 @@ func Week() string {
 	return fmt.Sprintf("%d%d", year, week)
 }
 
+func LastWeek() string {
+	// 获取7天前的时间
+	lastWeek := time.Now().AddDate(0, 0, -7)
+	year, week := lastWeek.ISOWeek()
+	return fmt.Sprintf("%d%d", year, week)
+}
+
 func WeekDay() time.Weekday {
 	return time.Now().Weekday()
 }
