@@ -25,6 +25,28 @@ func Year() string {
 	return fmt.Sprintf("%d", time.Now().Year())
 }
 
+// LastMonth 返回上个月的年月格式（例如：202312）
+func LastMonth() string {
+	now := time.Now()
+
+	// 获取当前年月
+	currentYear := now.Year()
+	currentMonth := now.Month()
+
+	// 计算上个月的年月
+	var year int
+	var month time.Month
+
+	if currentMonth == time.January {
+		year = currentYear - 1
+		month = time.December
+	} else {
+		year = currentYear
+		month = currentMonth - 1
+	}
+
+	return fmt.Sprintf("%d%02d", year, month)
+}
 func Month() string {
 	return fmt.Sprintf("%s%d", Year(), time.Now().Month())
 }
