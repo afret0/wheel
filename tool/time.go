@@ -1,72 +1,72 @@
 package tool
 
 import (
-	"fmt"
+	"github.com/afret0/wheel/tool/timeTool"
 	"time"
 )
 
+// Deprecated: 已废弃
 func Week() string {
-	year, week := time.Now().ISOWeek()
-	return fmt.Sprintf("%d%d", year, week)
+	//year, week := time.Now().ISOWeek()
+	//return fmt.Sprintf("%d%d", year, week)
+	return timeTool.Week()
 }
 
+// Deprecated: 已废弃，请使用 timeTool.LastWeek()
 func LastWeek() string {
 	// 获取7天前的时间
-	lastWeek := time.Now().AddDate(0, 0, -7)
-	year, week := lastWeek.ISOWeek()
-	return fmt.Sprintf("%d%d", year, week)
+	return timeTool.LastWeek()
 }
 
+// Deprecated: 已废弃
 func WeekDay() time.Weekday {
-	return time.Now().Weekday()
+	//return time.Now().Weekday()
+	return timeTool.WeekDay()
 }
 
+// Deprecated: 已废弃
 func Year() string {
-	return fmt.Sprintf("%d", time.Now().Year())
+	//return fmt.Sprintf("%d", time.Now().Year())
+	return timeTool.Year()
 }
 
-// LastMonth 返回上个月的年月格式（例如：202312）
+// Deprecated: 已废弃
 func LastMonth() string {
-	now := time.Now()
-
-	// 获取当前年月
-	currentYear := now.Year()
-	currentMonth := now.Month()
-
-	// 计算上个月的年月
-	var year int
-	var month time.Month
-
-	if currentMonth == time.January {
-		year = currentYear - 1
-		month = time.December
-	} else {
-		year = currentYear
-		month = currentMonth - 1
-	}
-
-	return fmt.Sprintf("%d%02d", year, month)
+	return timeTool.LastMonth()
 }
+
+// Deprecated: 已废弃
 func Month() string {
-	return fmt.Sprintf("%s%d", Year(), time.Now().Month())
+	//return fmt.Sprintf("%s%d", Year(), time.Now().Month())
+	return timeTool.Month()
 }
 
+// Deprecated: 已废弃
 func Day() string {
-	return fmt.Sprintf("%s%d", Month(), time.Now().Day())
+	//return fmt.Sprintf("%s%d", Month(), time.Now().Day())
+	return timeTool.Day()
 }
 
+// Deprecated: 已废弃
 func Hour() string {
-	return fmt.Sprintf("%s%d", Day(), time.Now().Hour())
+	//return fmt.Sprintf("%s%d", Day(), time.Now().Hour())
+	return timeTool.Hour()
 }
 
+// Deprecated: 已废弃
 func Minute() string {
-	return fmt.Sprintf("%s%d", Hour(), time.Now().Minute())
+	//return fmt.Sprintf("%s%d", Hour(), time.Now().Minute())
+	return timeTool.Minute()
 }
 
+// Deprecated: 已废弃
 func Second() string {
-	return fmt.Sprintf("%s%d", Minute(), time.Now().Second())
+	//return fmt.Sprintf("%s%d", Minute(), time.Now().Second())
+	return timeTool.Second()
 }
 
+// Deprecated: 已废弃
 func MidnightTody() time.Time {
-	return time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.Local)
+	//return time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.Local)
+	return timeTool.MidnightTody()
 }

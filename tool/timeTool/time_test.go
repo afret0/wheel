@@ -1,4 +1,4 @@
-package tool
+package timeTool
 
 import (
 	"fmt"
@@ -16,4 +16,5 @@ func Test_time(t *testing.T) {
 	fmt.Printf("Hour: %s\n", Hour())
 	fmt.Printf("Minute: %s\n", Minute())
 	fmt.Printf("Second: %s\n", Second())
+
 }
