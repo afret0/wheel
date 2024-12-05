@@ -217,8 +217,7 @@
             </div>
             <div class="section">
                 <h2>时间戳转日期</h2>
-                <input type="number" id="timestamp" placeholder="请输入时间戳">
-                <button onclick="timestampToDate()">转换为日期</button>
+                <input type="number" id="timestamp" placeholder="请输入时间戳" oninput="timestampToDate()">
                 <div class="result">
                     <!-- 秒级时间戳结果 -->
                     <div class="result-container">
@@ -242,8 +241,7 @@
             </div>
             <div class="section">
                 <h2>日期转时间戳</h2>
-                <input type="datetime-local" id="datetime" step="1">
-                <button onclick="dateToTimestamp()">转换为时间戳</button>
+                <input type="text" id="datetime" placeholder="请输入日期时间字符串" oninput="dateToTimestamp()">
                 <div class="result">
                     <div class="result-container">
                         <span class="label">秒级时间戳: </span>
@@ -264,26 +262,25 @@
                 </div>
             </div>
             <div class="section">
-                <h2>时间转换</h2>
-                <input type="number" id="timeNumber" placeholder="请输入数字">
-                <button onclick="convertTime()">转换</button>
+                <h2>时间戳转日期</h2>
+                <input type="number" id="timestamp" placeholder="请输入时间戳" oninput="timestampToDate()">
                 <div class="result">
-                    <!-- 秒级转换结果 -->
+                    <!-- 秒级时间戳结果 -->
                     <div class="result-container">
-                        <span class="label">秒级转换: </span>
-                        <span id="secondConvertResult" class="timestamp"></span>
+                        <span class="label">秒级结果: </span>
+                        <span id="secondDateResult" class="timestamp"></span>
                         <div class="tooltip">
-                            <button onclick="copyResult('secondConvertResult')" class="copy-button">复制</button>
-                            <span class="tooltiptext" id="secondConvertTooltip">已复制!</span>
+                            <button onclick="copyResult('secondDateResult')" class="copy-button">复制</button>
+                            <span class="tooltiptext" id="secondDateTooltip">已复制!</span>
                         </div>
                     </div>
-                    <!-- 毫秒级转换结果 -->
+                    <!-- 毫秒级时间戳结果 -->
                     <div class="result-container">
-                        <span class="label">毫秒级转换: </span>
-                        <span id="millisecondConvertResult" class="timestamp"></span>
+                        <span class="label">毫秒级结果: </span>
+                        <span id="millisecondDateResult" class="timestamp"></span>
                         <div class="tooltip">
-                            <button onclick="copyResult('millisecondConvertResult')" class="copy-button">复制</button>
-                            <span class="tooltiptext" id="millisecondConvertTooltip">已复制!</span>
+                            <button onclick="copyResult('millisecondDateResult')" class="copy-button">复制</button>
+                            <span class="tooltiptext" id="millisecondDateTooltip">已复制!</span>
                         </div>
                     </div>
                 </div>
@@ -293,8 +290,18 @@
     <!-- JavaScript 代码保持不变 -->
     <script>
         // 时间转换函数
+        // 时间转换函数
         function convertTime() {
-            const number = parseInt(document.getElementById('timeNumber').value);
+            const input = document.getElementById('timeNumber').value;
+
+            // 如果输入为空，清空结果
+            if (!input) {
+                document.getElementById('secondConvertResult').textContent = '';
+                document.getElementById('millisecondConvertResult').textContent = '';
+                return;
+            }
+
+            const number = parseInt(input);
 
             // 处理秒级转换
             const secondsResult = convertSeconds(number);
@@ -304,6 +311,8 @@
             const millisecondsResult = convertMilliseconds(number);
             document.getElementById('millisecondConvertResult').textContent = millisecondsResult;
         }
+
+        // 其他函数保持不变...
 
         // 秒级转换计算
         function convertSeconds(seconds) {
@@ -405,26 +414,52 @@
 
         // 时间戳转日期
         function timestampToDate() {
-            const timestamp = document.getElementById('timestamp').value;
+            const input = document.getElementById('timestamp').value;
+
+            // 如果输入为空，清空结果
+            if (!input) {
+                document.getElementById('secondDateResult').textContent = '';
+                document.getElementById('millisecondDateResult').textContent = '';
+                return;
+            }
+
+            const timestamp = parseInt(input);
 
             // 处理秒级时间戳
-            const secondDate = new Date(parseInt(timestamp) * 1000);
+            const secondDate = new Date(timestamp * 1000);
             document.getElementById('secondDateResult').textContent = formatDate(secondDate);
 
             // 处理毫秒级时间戳
-            const millisecondDate = new Date(parseInt(timestamp));
+            const millisecondDate = new Date(timestamp);
             document.getElementById('millisecondDateResult').textContent = formatDate(millisecondDate);
         }
 
         // 日期转时间戳
-        function dateToTimestamp() {
-            const datetimeStr = document.getElementById('datetime').value;
-            const date = new Date(datetimeStr);
-            const milliseconds = date.getTime();
-            const seconds = Math.floor(milliseconds / 1000);
-            document.getElementById('secondsResult').textContent = seconds;
-            document.getElementById('millisecondsResult').textContent = milliseconds;
-        }
+        // 日期转时间戳
+// 日期转时间戳
+function dateToTimestamp() {
+    const datetimeStr = document.getElementById('datetime').value;
+    
+    // 如果输入为空，清空结果
+    if (!datetimeStr) {
+        document.getElementById('secondsResult').textContent = '';
+        document.getElementById('millisecondsResult').textContent = '';
+        return;
+    }
+    
+    // 尝试解析日期字符串
+    const date = new Date(datetimeStr);
+    if (isNaN(date.getTime())) {
+        document.getElementById('secondsResult').textContent = '无效日期';
+        document.getElementById('millisecondsResult').textContent = '无效日期';
+        return;
+    }
+    
+    const milliseconds = date.getTime();
+    const seconds = Math.floor(milliseconds / 1000);
+    document.getElementById('secondsResult').textContent = seconds;
+    document.getElementById('millisecondsResult').textContent = milliseconds;
+}
 
         // 复制结果
         async function copyResult(elementId) {
