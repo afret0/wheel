@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title>tool</title>
+    <style>
+        /* 复用你现有的样式 */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #81B446;
+            color: #333333;
+        }
+
+        .sidebar {
+            width: 200px;
+            height: 100vh;
+            background-color: #81B446;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding-top: 20px;
+            color: white;
+        }
+
+        .sidebar h1 {
+            font-size: 20px;
+            padding: 0 20px;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            color: white;
+            text-decoration: none;
+            display: block;
+            text-align: left;
+        }
+
+        .nav-item:hover {
+            background-color: #2A477A;
+        }
+
+        .nav-item.active {
+            background-color: #2A477A;
+            border-left: 4px solid #5F383C;
+            padding-left: 16px;
+        }
+
+        .main-content {
+            margin-left: 200px;
+            padding: 20px;
+            max-width: 800px;
+            margin-right: auto;
+        }
+
+        .container {
+            background-color: #F5F5F0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #FFF2CC;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+
+        h2 {
+            color: #444444;
+            margin-bottom: 15px;
+        }
+
+        #qrcode {
+            margin-top: 20px;
+            text-align: center;
+            min-height: 256px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            position: relative;
+        }
+
+        /* 二维码图片样式 */
+        #qrcode img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            background: white;
+        }
+
+        /* 二维码容器的外层包装 */
+        .qrcode-wrapper {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #FCFFE9;
+            box-sizing: border-box;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #81B446;
+            box-shadow: 0 0 0 2px rgba(129, 180, 70, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            #qrcode {
+                padding: 15px;
+            }
+
+            textarea {
+                font-size: 16px; /* 移动设备上更大的字体size */
+            }
+        }
+    </style>
+    <!-- 引入 QR Code 生成库 -->
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+</head>
+
+<body>
+    <div class="sidebar">
+        <h1>tool</h1>
+        <a href="index.html" class="nav-item">timestamp</a>
+        <a href="base64.html" class="nav-item">base64</a>
+        <a href="qrcode.html" class="nav-item active">二维码生成</a>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="section">
+                <h2>文本转二维码</h2>
+                <textarea id="text" rows="4" placeholder="请输入要转换成二维码的文本" oninput="generateQRCode()"></textarea>
+                <div class="qrcode-wrapper">
+                    <div id="qrcode"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let qrcode = null;
+        let debounceTimer;
+
+        // 页面加载完成后初始化 QR 码对象
+        window.onload = function() {
+            initQRCode();
+        };
+
+        function initQRCode() {
+            qrcode = new QRCode(document.getElementById("qrcode"), {
+                width: 256,
+                height: 256,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H,
+                margin: 2, // 设置二维码边距
+                // QRCode 的配置选项
+                quietZone: 15, // 二维码周围的空白边距
+                quietZoneColor: 'white', // 空白边距的颜色
+            });
+        }
+
+        function generateQRCode() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const text = document.getElementById('text').value;
+                const qrcodeElement = document.getElementById('qrcode');
+                
+                if (!text) {
+                    qrcodeElement.innerHTML = '';
+                    initQRCode();
+                    return;
+                }
+
+                try {
+                    qrcode.clear(); // 清除之前的二维码
+                    qrcode.makeCode(text); // 生成新的二维码
+
+                    // 给生成的二维码图片添加样式
+                    setTimeout(() => {
+                        const qrImage = qrcodeElement.querySelector('img');
+                        if (qrImage) {
+                            qrImage.style.imageRendering = 'pixelated'; // 使二维码更清晰
+                            qrImage.style.transform = 'scale(0.95)'; // 稍微缩小一点以显示边框
+                            qrImage.style.transition = 'transform 0.3s ease';
+                        }
+                    }, 50);
+
+                } catch (e) {
+                    console.error('生成二维码时出错:', e);
+                }
+            }, 300);
+        }
+    </script>
+</body>
+</html>
