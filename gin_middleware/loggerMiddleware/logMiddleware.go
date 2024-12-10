@@ -2,7 +2,6 @@ package loggerMiddleware
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/getsentry/sentry-go"
 	"google.golang.org/grpc/codes"
@@ -66,17 +65,9 @@ type Option struct {
 	RePanic        bool     `json:"rePanic"`
 }
 
-type panicInfo struct {
-	PanicOccurred any    `json:"Panic occurred"`
-	StackTrace    string `json:"stackTrace"`
-	Uri           string `json:"uri"`
-	Req           string `json:"req"`
-	OpId          string `json:"opId"`
-}
-
-func (p *panicInfo) Marshal() string {
-	b, _ := json.Marshal(p)
-	return string(b)
+func panicMarshal(occurred any, stackTrace, opId string) string {
+	s := fmt.Sprintf("Panic occurred: %s\n, opId: %s\n, stackTrace: %s", occurred, opId, stackTrace)
+	return s
 }
 
 func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
@@ -124,25 +115,19 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 			if r := recover(); r != nil {
 				stackTrace := formatStack(string(debug.Stack()))
 
-				PI := &panicInfo{
-					PanicOccurred: r,
-					StackTrace:    stackTrace,
-					Uri:           reqUri,
-					Req:           string(req),
-					OpId:          opId,
-				}
+				p := panicMarshal(r, stackTrace, opId)
 
 				// 记录panic信息
 				lg.WithFields(logrus.Fields{
 					"panic": r,
 					"stack": stackTrace,
-				}).Error(PI.Marshal())
+				}).Error(p)
 
 				if opt.ReportToSentry {
-					go sentry.CaptureException(fmt.Errorf("%s", PI.Marshal()))
+					go sentry.CaptureException(fmt.Errorf("%s", p))
 				}
 				if opt.RePanic {
-					panic(PI.Marshal())
+					panic(p)
 				}
 
 				err := status.Errorf(codes.Internal, "Panic occurred: %#v, stack: %s", r, stackTrace)
