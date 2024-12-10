@@ -2,6 +2,7 @@ package loggerMiddleware
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/getsentry/sentry-go"
 	"google.golang.org/grpc/codes"
@@ -65,6 +66,19 @@ type Option struct {
 	RePanic        bool     `json:"rePanic"`
 }
 
+type panicInfo struct {
+	PanicOccurred any    `json:"Panic occurred"`
+	StackTrace    string `json:"stackTrace"`
+	Uri           string `json:"uri"`
+	Req           string `json:"req"`
+	OpId          string `json:"opId"`
+}
+
+func (p *panicInfo) Marshal() string {
+	b, _ := json.Marshal(p)
+	return string(b)
+}
+
 func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 	opt := new(Option)
 	if len(opts) > 0 && opts[0] != nil {
@@ -88,11 +102,15 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 		reqUri := c.Request.RequestURI
 		token := c.GetHeader("token")
 
+		clientIP := c.ClientIP()
+
 		lg := GetMiddleWareLogger().WithFields(logrus.Fields{
-			"uri":   reqUri,
-			"token": token,
-			"req":   string(req),
-			"opId":  opId,
+			"uri":      reqUri,
+			"token":    token,
+			"req":      string(req),
+			"opId":     opId,
+			"clientIP": clientIP,
+			"reqTime":  startT.Format("2006-01-02 15:04:05"),
 		})
 
 		for _, uri := range opt.WhiteList {
@@ -105,17 +123,26 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 
 			if r := recover(); r != nil {
 				stackTrace := formatStack(string(debug.Stack()))
+
+				PI := &panicInfo{
+					PanicOccurred: r,
+					StackTrace:    stackTrace,
+					Uri:           reqUri,
+					Req:           string(req),
+					OpId:          opId,
+				}
+
 				// 记录panic信息
 				lg.WithFields(logrus.Fields{
 					"panic": r,
 					"stack": stackTrace,
-				}).Error("Panic occurred")
+				}).Error(PI.Marshal())
 
 				if opt.ReportToSentry {
-					go sentry.CaptureException(fmt.Errorf("panic occurred: %v, stack: %+v", r, stackTrace))
+					go sentry.CaptureException(fmt.Errorf("%s", PI.Marshal()))
 				}
 				if opt.RePanic {
-					panic(fmt.Sprintf("Panic occurred: %s, \nstack: %s", r, stackTrace))
+					panic(PI.Marshal())
 				}
 
 				err := status.Errorf(codes.Internal, "Panic occurred: %#v, stack: %s", r, stackTrace)
@@ -130,16 +157,11 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 		c.Next()
 		endT := time.Now()
 		latencyT := endT.Sub(startT)
-		reqMethod := c.Request.Method
-		clientIP := c.ClientIP()
 		statusCode := c.Writer.Status()
 		uid := c.Request.Header.Get("_uid")
 
 		lg.WithFields(logrus.Fields{
-			"reqTime":    startT.Format("2006-01-02 15:04:05"),
 			"latencyT":   latencyT.Milliseconds(),
-			"method":     reqMethod,
-			"clientIP":   clientIP,
 			"res":        blw.body.String(),
 			"uid":        uid,
 			"statusCode": statusCode,
