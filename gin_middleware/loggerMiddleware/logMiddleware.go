@@ -96,6 +96,7 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 		clientIP := c.ClientIP()
 
 		lg := GetMiddleWareLogger().WithFields(logrus.Fields{
+			"type":     "middlewareLog",
 			"uri":      reqUri,
 			"token":    token,
 			"req":      string(req),

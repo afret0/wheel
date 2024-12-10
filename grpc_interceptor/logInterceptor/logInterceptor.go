@@ -60,7 +60,7 @@ func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 
 		startT := time.Now()
 
-		lg := log.GetMiddleWareLogger().WithFields(logrus.Fields{"opId": opId, "info": info, "clientIP": clientIP, "req": req, "_uid": uid})
+		lg := log.GetMiddleWareLogger().WithFields(logrus.Fields{"type": "interceptorLog", "opId": opId, "info": info, "clientIP": clientIP, "req": req, "_uid": uid})
 
 		defer func() {
 			if opt.Debug {
