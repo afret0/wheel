@@ -76,7 +76,8 @@ func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 				lg.WithFields(logrus.Fields{
 					"panic": r,
 					"stack": stack,
-				}).Error(p)
+					"opId":  opId,
+				}).Error(r)
 
 				if opt.ReportToSentry {
 					go sentry.CaptureException(errors.New(p))

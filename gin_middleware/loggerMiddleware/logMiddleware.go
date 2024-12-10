@@ -121,7 +121,8 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 				lg.WithFields(logrus.Fields{
 					"panic": r,
 					"stack": stackTrace,
-				}).Error(p)
+					"opId":  opId,
+				}).Error(r)
 
 				if opt.ReportToSentry {
 					go sentry.CaptureException(fmt.Errorf("%s", p))
