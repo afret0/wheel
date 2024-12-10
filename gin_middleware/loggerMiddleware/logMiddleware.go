@@ -66,7 +66,7 @@ type Option struct {
 }
 
 func panicMarshal(occurred any, stackTrace, opId string) string {
-	s := fmt.Sprintf("Panic occurred: %s\n, opId: %s\n, stackTrace: %s", occurred, opId, stackTrace)
+	s := fmt.Sprintf("Panic occurred: %s,\nopId: %s,\nstackTrace:\n %s", occurred, opId, stackTrace)
 	return s
 }
 

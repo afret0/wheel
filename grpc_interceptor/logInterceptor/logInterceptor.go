@@ -28,6 +28,11 @@ type Option struct {
 
 type Opt = Option
 
+func panicMarshal(occurred any, stackTrace, opId string) string {
+	s := fmt.Sprintf("Panic occurred: %s,\nopId: %s,\nstackTrace:\n %s", occurred, opId, stackTrace)
+	return s
+}
+
 func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 	opt := new(Option)
 	if len(opts) > 0 && opts[0] != nil {
@@ -65,17 +70,20 @@ func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 			if r := recover(); r != nil {
 				// 记录panic信息
 				stack := string(debug.Stack())
+
+				p := panicMarshal(r, stack, opId)
+
 				lg.WithFields(logrus.Fields{
 					"panic": r,
 					"stack": stack,
-				}).Error("Panic occurred")
+				}).Error(p)
 
 				if opt.ReportToSentry {
-					go sentry.CaptureException(errors.New(fmt.Sprintf("Panic occurred: %s", stack)))
+					go sentry.CaptureException(errors.New(p))
 				}
 
 				if opt.RePanic {
-					panic(fmt.Sprintf("Panic occurred: %s, \nstack: %s", r, stack))
+					panic(p)
 				}
 
 				err = status.Errorf(codes.Internal, "Panic occurred: %#v, stack: %s", r, stack)
