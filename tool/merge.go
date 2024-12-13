@@ -1,11 +1,14 @@
 package tool
 
 import (
-	"encoding/json"
 	"errors"
+	jsoniter "github.com/json-iterator/go"
 	"reflect"
 )
 
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+// Deprecated: 已废弃
 func MergeByReflection(from interface{}, to interface{}) error {
 	// 检查 from 和 to 是否为指针类型
 	if reflect.TypeOf(from).Kind() != reflect.Ptr {
@@ -36,6 +39,11 @@ func MergeByReflection(from interface{}, to interface{}) error {
 	}
 
 	return nil
+}
+
+func MergeByJson(from interface{}, to interface{}) {
+	fromJson, _ := json.Marshal(from)
+	_ = json.Unmarshal(fromJson, to)
 }
 
 func MarshalWithoutErr(v interface{}) string {
