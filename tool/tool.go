@@ -2,7 +2,6 @@ package tool
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/spf13/viper"
 	"os"
