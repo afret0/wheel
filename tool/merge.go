@@ -50,3 +50,12 @@ func MarshalWithoutErr(v interface{}) string {
 	b, _ := json.Marshal(v)
 	return string(b)
 }
+
+func Marshal(v interface{}) (string, error) {
+	b, err := json.Marshal(v)
+	return string(b), err
+}
+
+func Unmarshal(data string, v interface{}) error {
+	return json.Unmarshal([]byte(data), v)
+}
