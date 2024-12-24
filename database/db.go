@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -93,5 +94,22 @@ func (m *MongoDB) Disconnect() {
 		m.logger.Panicf("mongoDB disconnect Err: %s", err.Error())
 	} else {
 		m.logger.Info("mongoDB disconnect succeed...")
+	}
+}
+
+func (m *MongoDB) CheckCollectionExist(CollectionName string) {
+	collectionL, err := m.GetDatabase().ListCollectionNames(context.Background(), bson.M{"name": CollectionName})
+	if err != nil {
+		log.GetLogger().Panic(err)
+	}
+	if len(collectionL) > 0 {
+		log.GetLogger().Infof("collection %s exists", CollectionName)
+	} else {
+		log.GetLogger().Infof("collection %s not exists, 开始创建", CollectionName)
+		err = m.GetDatabase().CreateCollection(context.Background(), CollectionName)
+		if err != nil {
+			log.GetLogger().Panic(err)
+		}
+		log.GetLogger().Infof("collection %s 创建成功", CollectionName)
 	}
 }
