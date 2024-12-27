@@ -44,6 +44,11 @@ func ConStringToInt64(s string) (int64, error) {
 	return i, err
 }
 
+func ConStringToInt64WithoutErr(s string) int64 {
+	i, _ := ConStringToInt64(s)
+	return i
+}
+
 func UUIDWithoutHyphen() string {
 	return strings.ReplaceAll(uuid.New().String(), "-", "")
 }
