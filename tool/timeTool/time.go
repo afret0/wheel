@@ -70,6 +70,10 @@ func Second() string {
 }
 
 func MidnightTody() time.Time {
+	return MidnightToday()
+}
+
+func MidnightToday() time.Time {
 	location, err := time.LoadLocation("Asia/Shanghai")
 	if err != nil {
 		panic(err)
