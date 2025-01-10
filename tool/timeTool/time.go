@@ -70,7 +70,12 @@ func Second() string {
 }
 
 func MidnightTody() time.Time {
-	return time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.Local)
+	location, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		panic(err)
+	}
+
+	return time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, location)
 }
 
 // ParseWeek 解析周格式 (例如: 202401)
