@@ -74,12 +74,16 @@ func MidnightTody() time.Time {
 }
 
 func MidnightToday() time.Time {
-	location, err := time.LoadLocation("Asia/Shanghai")
-	if err != nil {
-		panic(err)
-	}
+	//location, err := time.LoadLocation("Asia/Shanghai")
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//return time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, location)
 
-	return time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, location)
+	location := time.FixedZone("UTC+8", 8*60*60) // 东八区，偏移量为8小时(8*60*60秒)
+	now := time.Now()
+	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, location)
 }
 
 // ParseWeek 解析周格式 (例如: 202401)
