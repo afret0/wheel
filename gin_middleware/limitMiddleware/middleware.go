@@ -167,7 +167,7 @@ func (l *LimitMiddleware) LimitMiddleware(optChain ...*Option) gin.HandlerFunc {
 			return
 		}
 		if allowRet.Allowed < 1 {
-			ctx.JSON(http.StatusOK, gin.H{"code": -2, "message": "休息 休息 休息一下~"})
+			ctx.JSON(http.StatusOK, gin.H{"code": 3, "message": "休息 休息 休息一下~"})
 			ctx.Abort()
 			return
 		}
