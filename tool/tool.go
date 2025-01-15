@@ -90,8 +90,6 @@ func GrpcCtx(ctx context.Context) context.Context {
 		}
 	}
 
-	ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs("opId"))
-
 	return ctx
 }
 
