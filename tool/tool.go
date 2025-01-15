@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc/metadata"
 	"os"
 	"strconv"
 	"strings"
@@ -60,6 +61,38 @@ func OpId(ctx context.Context) string {
 		return UUIDWithoutHyphen()
 	}
 	return opId
+}
+
+func GrpcCtx(ctx context.Context) context.Context {
+	opId := OpId(ctx)
+
+	//md := metadata.Pairs("opid", opId)
+	//
+	//if md, ok := metadata.FromIncomingContext(ctx); ok {
+	//	if val, exists := md["opid"]; exists && len(val) > 0 {
+	//		opId = val[0]
+	//	} else {
+	//		md["opid"] = []string{opId}
+	//		ctx = metadata.NewOutgoingContext(ctx, md)
+	//	}
+	//}
+
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		md = metadata.Pairs("opid", opId)
+		ctx = metadata.NewOutgoingContext(ctx, md)
+	} else {
+		if val, exists := md["opid"]; exists && len(val) > 0 {
+			opId = val[0]
+		} else {
+			md["opid"] = []string{opId}
+			ctx = metadata.NewOutgoingContext(ctx, md)
+		}
+	}
+
+	ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs("opId"))
+
+	return ctx
 }
 
 func OpIdWithoutDefault(ctx context.Context) string {
