@@ -47,6 +47,7 @@ func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 				opId = val[0]
 			} else {
 				md["opid"] = []string{opId}
+				ctx = metadata.NewOutgoingContext(ctx, md)
 			}
 
 			if val, exists := md["_uid"]; exists && len(val) > 0 {
