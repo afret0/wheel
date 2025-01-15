@@ -45,11 +45,16 @@ func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
 			if val, exists := md["opid"]; exists && len(val) > 0 {
 				opId = val[0]
+			} else {
+				md["opid"] = []string{opId}
 			}
 
 			if val, exists := md["_uid"]; exists && len(val) > 0 {
 				uid = val[0]
 			}
+		} else {
+			md := metadata.Pairs("opid", opId)
+			ctx = metadata.NewOutgoingContext(ctx, md)
 		}
 		ctx = context.WithValue(ctx, "opId", opId)
 
