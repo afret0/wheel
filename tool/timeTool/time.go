@@ -81,9 +81,20 @@ func MidnightToday() time.Time {
 	//
 	//return time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, location)
 
-	location := time.FixedZone("UTC+8", 8*60*60) // 东八区，偏移量为8小时(8*60*60秒)
+	//location := time.FixedZone("UTC+8", 8*60*60) // 东八区，偏移量为8小时(8*60*60秒)
+
 	now := time.Now()
-	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, location)
+	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, Location())
+}
+
+func Location() *time.Location {
+	//return time.Local
+	location := time.FixedZone("UTC+8", 8*60*60)
+	return location
+}
+
+func LocalNow() time.Time {
+	return time.Now().In(Location())
 }
 
 // ParseWeek 解析周格式 (例如: 202401)
