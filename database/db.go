@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -42,7 +43,8 @@ func (m *MongoDB) newClient(ctx context.Context, opt *options.ClientOptions) *mo
 	//client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri).SetMaxPoolSize(20))
 	client, err := mongo.Connect(ctx, opt)
 	if err != nil {
-		m.logger.Panicf("MongoDB connection failed, Err: %s, uri: %s", err.Error(), opt.GetURI())
+		//m.logger.Panicf("MongoDB connection failed, Err: %s, uri: %s", err.Error(), opt.GetURI())
+		panic(fmt.Sprintf("MongoDB connection failed, Err: %s, uri: %s", err.Error(), opt.GetURI()))
 	} else {
 		m.logger.Infof("MongoDB connection succeed...")
 	}
@@ -52,7 +54,8 @@ func (m *MongoDB) newClient(ctx context.Context, opt *options.ClientOptions) *mo
 func (m *MongoDB) Ping(ctx context.Context) {
 	err := m.client.Ping(ctx, readpref.SecondaryPreferred())
 	if err != nil {
-		m.logger.Panicf("mongoDB ping Err: %s", err.Error())
+		//m.logger.Panicf("mongoDB ping Err: %s", err.Error())
+		panic(err)
 	} else {
 		m.logger.Info("mongoDB ping succeed...")
 	}
@@ -90,7 +93,8 @@ func (m *MongoDB) GetClient() *mongo.Client {
 func (m *MongoDB) Disconnect() {
 	err := m.client.Disconnect(context.Background())
 	if err != nil {
-		m.logger.Panicf("mongoDB disconnect Err: %s", err.Error())
+		//m.logger.Panicf("mongoDB disconnect Err: %s", err.Error())
+		panic(fmt.Sprintf("mongoDB disconnect Err: %s", err.Error()))
 	} else {
 		m.logger.Info("mongoDB disconnect succeed...")
 	}
