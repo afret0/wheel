@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+	"io"
 	"net/http"
 	"reflect"
 	"sort"
@@ -94,6 +95,27 @@ func (cm *CacheMiddleware) calculateHeaderMD5(ctx *gin.Context) (string, error) 
 	return md5, nil
 }
 
+func (cm *CacheMiddleware) calculateBodyMD5(ctx *gin.Context) (string, error) {
+	// 读取 body
+	body, err := ctx.GetRawData()
+	if err != nil {
+		return "", err
+	}
+
+	// 将 body 写回，以便后续中间件和处理函数使用
+	ctx.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+
+	// 如果 body 为空，返回空字符串
+	if len(body) == 0 {
+		return "", nil
+	}
+
+	// 计算 MD5
+	hasher := md5.New()
+	hasher.Write(body)
+	return hex.EncodeToString(hasher.Sum(nil)), nil
+}
+
 func (cm *CacheMiddleware) CacheMiddleware(configChain ...*Config) gin.HandlerFunc {
 	config := cm.config
 	if len(configChain) > 0 {
@@ -125,7 +147,16 @@ func (cm *CacheMiddleware) CacheMiddleware(configChain ...*Config) gin.HandlerFu
 			uid = ctx.Request.Header.Get("_uid")
 		}
 
-		k := fmt.Sprintf("%s:cache:middleware:%s:%s:%s", config.Prefix, ctx.Request.RequestURI, uid, headerS)
+		k := fmt.Sprintf("%s:cache:middleware:%s:%s:%s:%s", config.Prefix, ctx.Request.RequestURI, ctx.Request.Method, uid, headerS)
+		if ctx.Request.Method == http.MethodPost {
+			bodyMD5, err := cm.calculateBodyMD5(ctx)
+			if err != nil {
+				ctx.JSON(http.StatusOK, gin.H{"code": 0, "msg": "body read error"})
+				return
+			}
+
+			k = fmt.Sprintf("%s:cache:middleware:%s:%s:%s:%s:%s", config.Prefix, ctx.Request.RequestURI, ctx.Request.Method, uid, headerS, bodyMD5)
+		}
 
 		val, err := cm.redis.Get(ctx, k).Result()
 		if err != nil && !errors.Is(err, redis.Nil) {

@@ -17,4 +17,5 @@ func Test_time(t *testing.T) {
 	fmt.Printf("Minute: %s\n", Minute())
 	fmt.Printf("Second: %s\n", Second())
 
+	fmt.Printf("midnight: %s\n", MidnightTody())
 }
