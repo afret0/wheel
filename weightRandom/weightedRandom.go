@@ -46,7 +46,7 @@ func (wr *WeightedRandom) Roll() string {
 		return ""
 	}
 
-	rand.New(rand.NewSource(time.Now().UnixMilli()))
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 	num := rand.Intn(wr.Max)
 
 	for _, v := range wr.pool {
