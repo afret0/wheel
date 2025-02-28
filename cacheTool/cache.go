@@ -3,9 +3,7 @@ package cacheTool
 import (
 	"context"
 	"errors"
-	"github.com/afret0/wheel/log"
 	redisCache "github.com/go-redis/cache/v9"
-	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
 )
@@ -30,7 +28,6 @@ func WithCache[T any](
 	fetchFunc func(ctx context.Context) (T, error),
 	optChains ...*Option,
 ) (T, error) {
-	lg := log.CtxLogger(ctx).WithFields(logrus.Fields{"cacheKey": cacheKey})
 	result := cacheResult[T]{}
 
 	opt := Option{}
@@ -46,12 +43,11 @@ func WithCache[T any](
 		Do: func(item *redisCache.Item) (interface{}, error) {
 			data, err := fetchFunc(ctx)
 			if err != nil {
-				if opt.NoCacheMongoNoDocuments && errors.Is(err, mongo.ErrNoDocuments) {
+				if !opt.NoCacheMongoNoDocuments && errors.Is(err, mongo.ErrNoDocuments) {
 					return &cacheResult[T]{
 						Err: err.Error(),
 					}, nil
 				}
-				lg.Errorf("err: %s", err)
 				return nil, err
 			}
 
@@ -65,7 +61,6 @@ func WithCache[T any](
 	})
 
 	if err != nil {
-		lg.Errorf("Cache error: %s", err)
 		return result.Data, err
 	}
 
