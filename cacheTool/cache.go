@@ -16,8 +16,14 @@ type Option struct {
 }
 
 type cacheResult[T any] struct {
-	Data T      `json:"data"`
-	Err  string `json:"err"`
+	Data    T      `json:"data"`
+	Err     string `json:"err"`
+	ErrType string `json:"errType"`
+}
+
+var errorMapping = map[string]error{
+	"mongo.ErrNoDocuments": mongo.ErrNoDocuments,
+	// 添加其他需要识别的错误...
 }
 
 func WithCache[T any](
@@ -65,7 +71,14 @@ func WithCache[T any](
 	}
 
 	// If we cached an error, return it
+	//if result.Err != "" {
+	//	return result.Data, errors.New(result.Err)
+	//}
+
 	if result.Err != "" {
+		if knownErr, exists := errorMapping[result.ErrType]; exists {
+			return result.Data, knownErr
+		}
 		return result.Data, errors.New(result.Err)
 	}
 
