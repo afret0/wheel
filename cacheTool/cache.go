@@ -73,6 +73,11 @@ func WithCache[T any](
 
 	//If we cached an error, return it
 	if result.Err != "" {
+		switch result.Err {
+		case mongo.ErrNoDocuments.Error():
+			return result.Data, mongo.ErrNoDocuments
+		}
+
 		return result.Data, errors.New(result.Err)
 	}
 
