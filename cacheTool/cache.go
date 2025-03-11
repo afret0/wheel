@@ -51,7 +51,8 @@ func WithCache[T any](
 			if err != nil {
 				if !opt.NoCacheMongoNoDocuments && errors.Is(err, mongo.ErrNoDocuments) {
 					return &cacheResult[T]{
-						Err: err.Error(),
+						Err:     err.Error(),
+						ErrType: "mongo.ErrNoDocuments",
 					}, nil
 				}
 				return nil, err
