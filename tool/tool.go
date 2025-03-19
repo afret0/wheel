@@ -110,3 +110,7 @@ func IsLetter(s string) bool {
 	}
 	return true
 }
+
+func NewCtxBK() context.Context {
+	return context.WithValue(context.Background(), "opId", strings.ReplaceAll(uuid.New().String(), "-", ""))
+}
