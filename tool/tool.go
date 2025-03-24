@@ -114,3 +114,8 @@ func IsLetter(s string) bool {
 func NewCtxBK() context.Context {
 	return context.WithValue(context.Background(), "opId", strings.ReplaceAll(uuid.New().String(), "-", ""))
 }
+
+func RenewCtx(ctx context.Context) context.Context {
+	opId := OpId(ctx)
+	return context.WithValue(context.Background(), "opId", opId)
+}
