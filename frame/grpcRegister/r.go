@@ -78,13 +78,14 @@ outerLoop:
 	for i := 0; i < ctrlType.NumMethod(); i++ {
 		method := ctrlType.Method(i)
 
-		// 跳过一些内部方法
 		if strings.HasPrefix(method.Name, "mustEmbedUnimplemented") {
 			continue
 		}
 
+		fullMethodName := fmt.Sprintf("/%s/%s", serviceName, method.Name)
+
 		for _, prefix := range g.opt.PrefixWhiteList {
-			if strings.Contains(method.Name, prefix) {
+			if strings.Contains(fullMethodName, prefix) {
 				continue outerLoop
 			}
 		}
@@ -93,8 +94,8 @@ outerLoop:
 		handler := g.createHTTPHandler(ctrlValue, method)
 
 		// 注册路由，使用方法名作为路径
-		if slot, ok := g.opt.MethodMiddlewareSlot[method.Name]; ok {
-			G.POST(fmt.Sprintf("/%s", method.Name), handler, slot.MiddlewareChain...)
+		if slot, ok := g.opt.MethodMiddlewareSlot[fullMethodName]; ok {
+			G.POST(fmt.Sprintf("/%s", fullMethodName), handler, slot.MiddlewareChain...)
 			continue
 		}
 
