@@ -95,7 +95,7 @@ outerLoop:
 
 		// 注册路由，使用方法名作为路径
 		if slot, ok := g.opt.MethodMiddlewareSlot[fullMethodName]; ok {
-			G.POST(fmt.Sprintf("/%s", fullMethodName), handler, slot.MiddlewareChain...)
+			R.POST(fmt.Sprintf("/%s", fullMethodName), handler, slot.MiddlewareChain...)
 			continue
 		}
 
