@@ -86,6 +86,8 @@ func GrpcCtx(ctx context.Context) context.Context {
 			opId = val[0]
 		} else {
 			md["opid"] = []string{opId}
+			//newMd := metadata.Join(md, metadata.Pairs("opid", opId))
+			//ctx = metadata.NewOutgoingContext(ctx, newMd)
 			ctx = metadata.NewOutgoingContext(ctx, md)
 		}
 	}
