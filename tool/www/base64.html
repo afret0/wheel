@@ -192,8 +192,8 @@
     <!-- 侧边导航栏 -->
     <div class="sidebar">
         <h1>tool</h1>
-        <a href="index.html" class="nav-item active">timestamp</a>
-        <a href="base64.html" class="nav-item">base64</a>
+        <a href="index.html" class="nav-item">timestamp</a>
+        <a href="base64.html" class="nav-item active">base64</a>
         <a href="qrcode.html" class="nav-item">qrcode</a>
     </div>
 
@@ -246,6 +246,45 @@
                                 style="width: 100%; height: 45px; margin-bottom: 10px; padding: 8px;"
                                 readonly></textarea>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 修改 UUID 生成部分 -->
+            <div class="section">
+                <h2>UUID 生成</h2>
+<!--                <div>-->
+<!--                    <div style="display: flex; gap: 20px; align-items: center;">-->
+<!--                        <div style="flex: 1;">-->
+<!--                            <button id="generateUUID" style="width: 150px; height: 40px; margin-right: 10px;">生成 UUID</button>-->
+<!--                            <div class="tooltip">-->
+<!--                                <button id="copyUUID" class="copy-button" style="width: 80px; height: 40px;">复制</button>-->
+<!--                                <span class="tooltiptext" id="uuidTooltip">已复制!</span>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    <div style="margin-top: 15px;">-->
+<!--                        <div style="margin-bottom: 5px;">UUID 结果：</div>-->
+<!--                        <textarea id="uuidResult" placeholder="点击生成按钮创建 UUID"-->
+<!--                            style="width: 100%; height: 45px; margin-bottom: 10px; padding: 8px;"-->
+<!--                            readonly></textarea>-->
+<!--                    </div>-->
+                    
+                    <!-- 新增不带连字符的 UUID 生成部分 -->
+                    <div style="display: flex; gap: 20px; align-items: center; margin-top: 15px;">
+                        <div style="flex: 1;">
+                            <button id="generatePlainUUID" style="width: 150px; height: 40px; margin-right: 10px;">生成无连字符 UUID</button>
+                            <div class="tooltip">
+                                <button id="copyPlainUUID" class="copy-button" style="width: 80px; height: 40px;">复制</button>
+                                <span class="tooltiptext" id="plainUuidTooltip">已复制!</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div style="margin-bottom: 5px;">无连字符 UUID 结果：</div>
+                        <textarea id="plainUuidResult" placeholder="点击生成按钮创建无连字符 UUID"
+                            style="width: 100%; height: 45px; margin-bottom: 10px; padding: 8px;"
+                            readonly></textarea>
                     </div>
                 </div>
             </div>
@@ -329,6 +368,64 @@
                 tooltip.classList.remove('show');
             }, 1500);
         }
+
+        // 生成 UUID 函数
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+        
+        // 生成无连字符的 UUID 函数
+        function generatePlainUUID() {
+            return generateUUID().replace(/-/g, '');
+        }
+
+        // 为 UUID 生成按钮添加事件监听器
+        document.getElementById('generateUUID').addEventListener('click', function() {
+            const uuid = generateUUID();
+            document.getElementById('uuidResult').value = uuid;
+        });
+
+        // 为 UUID 复制按钮添加事件监听器
+        document.getElementById('copyUUID').addEventListener('click', async function() {
+            const uuidText = document.getElementById('uuidResult').value;
+            if (uuidText) {
+                try {
+                    await navigator.clipboard.writeText(uuidText);
+                    showTooltip('uuidTooltip');
+                } catch (err) {
+                    console.error('复制失败:', err);
+                }
+            }
+        });
+        
+        // 为无连字符 UUID 生成按钮添加事件监听器
+        document.getElementById('generatePlainUUID').addEventListener('click', function() {
+            const plainUuid = generatePlainUUID();
+            document.getElementById('plainUuidResult').value = plainUuid;
+        });
+
+        // 为无连字符 UUID 复制按钮添加事件监听器
+        document.getElementById('copyPlainUUID').addEventListener('click', async function() {
+            const plainUuidText = document.getElementById('plainUuidResult').value;
+            if (plainUuidText) {
+                try {
+                    await navigator.clipboard.writeText(plainUuidText);
+                    showTooltip('plainUuidTooltip');
+                } catch (err) {
+                    console.error('复制失败:', err);
+                }
+            }
+        });
+
+        // 页面加载时自动生成 UUID
+        window.addEventListener('load', function() {
+            document.getElementById('generateUUID').click();
+            document.getElementById('generatePlainUUID').click();
+        });
     </script>
 </body>
 
