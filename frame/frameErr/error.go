@@ -18,8 +18,11 @@ func getManager() *Manager {
 	if m != nil {
 		return m
 	}
-	m = new(Manager)
-	m.errs = make(map[string]*Item, 0)
+	//m = new(Manager)
+	//m.errs = make(map[string]*Item, 0)
+	m = &Manager{
+		errs: make(map[string]*Item),
+	}
 
 	return m
 }
