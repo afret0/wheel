@@ -2,6 +2,7 @@ package tool
 
 import (
 	"context"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc/metadata"
@@ -120,4 +121,16 @@ func NewCtxBK() context.Context {
 func RenewCtx(ctx context.Context) context.Context {
 	opId := OpId(ctx)
 	return context.WithValue(context.Background(), "opId", opId)
+}
+
+func ClientIP(ctx *gin.Context) string {
+	ip := ctx.ClientIP()
+
+	oip := ctx.GetHeader("X-Original-Forwarded-For")
+
+	if oip != "" {
+		ip = oip
+	}
+
+	return ip
 }
