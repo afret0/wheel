@@ -134,3 +134,12 @@ func ClientIP(ctx *gin.Context) string {
 
 	return ip
 }
+
+func HostId() string {
+	hostname := os.Getenv("HOSTNAME")
+	if hostname == "" {
+		hostname = UUIDWithoutHyphen()
+	}
+
+	return hostname
+}
