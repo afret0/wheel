@@ -3,6 +3,7 @@ package loggerMiddleware
 import (
 	"bytes"
 	"fmt"
+	"github.com/afret0/wheel/tool"
 	"github.com/afret0/wheel/tool/recoverTool"
 	"github.com/getsentry/sentry-go"
 	"google.golang.org/grpc/codes"
@@ -46,7 +47,11 @@ type Option struct {
 	Service        string   `json:"service"`
 	WhiteList      []string `json:"whiteList"`
 	ReportToSentry bool     `json:"reportToSentry"`
+	ReportToEmail  bool     `json:"reportToEmail"`
 	RePanic        bool     `json:"rePanic"`
+
+	EmailReceiver []string             `json:"emailReceiver"`
+	EmailSvc      recoverTool.EmailSvc `json:"emailSvc"`
 }
 
 func panicMarshal(occurred any, stackTrace, opId string) string {
@@ -112,6 +117,16 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 				if opt.ReportToSentry {
 					go sentry.CaptureException(fmt.Errorf("%s", p))
 				}
+
+				if opt.ReportToEmail {
+					go recoverTool.GetRecoverTool(&recoverTool.Option{
+						Service:       opt.Service,
+						Env:           tool.GetEnv(),
+						EmailReceiver: opt.EmailReceiver,
+						EmailSvc:      opt.EmailSvc,
+					}).HandleRecover(r, stackTrace)
+				}
+
 				if opt.RePanic {
 					panic(p)
 				}
