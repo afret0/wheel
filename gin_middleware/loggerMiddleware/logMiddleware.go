@@ -3,6 +3,7 @@ package loggerMiddleware
 import (
 	"bytes"
 	"fmt"
+	"github.com/afret0/wheel/tool/recoverTool"
 	"github.com/getsentry/sentry-go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -39,23 +40,6 @@ type bodyLogWriter struct {
 func (w bodyLogWriter) Write(b []byte) (int, error) {
 	w.body.Write(b)
 	return w.ResponseWriter.Write(b)
-}
-
-func formatStack(stack string) string {
-	lines := strings.Split(stack, "\n")
-	var formatted []string
-	for i := 0; i < len(lines); i += 2 {
-		if i+1 < len(lines) {
-			file := strings.TrimSpace(lines[i])
-			function := strings.TrimSpace(lines[i+1])
-			if strings.HasPrefix(file, "goroutine ") {
-				formatted = append(formatted, file)
-			} else {
-				formatted = append(formatted, fmt.Sprintf("%s\n    at %s", function, file))
-			}
-		}
-	}
-	return strings.Join(formatted, "\n")
 }
 
 type Option struct {
@@ -114,7 +98,7 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 		defer func() {
 
 			if r := recover(); r != nil {
-				stackTrace := formatStack(string(debug.Stack()))
+				stackTrace := recoverTool.FormatStack(string(debug.Stack()))
 
 				p := panicMarshal(r, stackTrace, opId)
 

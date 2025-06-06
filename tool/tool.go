@@ -15,6 +15,9 @@ import (
 
 func GetEnv() string {
 	env := os.Getenv("environment")
+	if env == "" {
+		env = os.Getenv("ENV")
+	}
 	return env
 }
 
