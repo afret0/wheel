@@ -3,9 +3,10 @@ package cacheTool
 import (
 	"context"
 	"errors"
+	"time"
+
 	redisCache "github.com/go-redis/cache/v9"
 	"go.mongodb.org/mongo-driver/mongo"
-	"time"
 )
 
 type Option struct {
@@ -25,6 +26,10 @@ type cacheResult[T any] struct {
 //	"mongo.ErrNoDocuments": mongo.ErrNoDocuments,
 //	// 添加其他需要识别的错误...
 //}
+
+type CacheWrapper struct {
+	L []interface{} `json:"l"`
+}
 
 func WithCache[T any](
 	ctx context.Context,
