@@ -31,6 +31,8 @@ type SliceWrapper[T any] struct {
 	L []*T `json:"l" msgpack:"l"`
 }
 
+// WithCache cache encapsulation, slice please use SliceWrapper
+// WithCache(ctx,cache,cacheKey,ttl,func(ctx context.Context) (*SliceWrapper[T],err)
 func WithCache[T any](
 	ctx context.Context,
 	cache *redisCache.Cache,
