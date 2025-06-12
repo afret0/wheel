@@ -28,7 +28,7 @@ type cacheResult[T any] struct {
 //}
 
 type SliceWrapper[T any] struct {
-	L []T `json:"l" msgpack:"l"`
+	L []*T `json:"l" msgpack:"l"`
 }
 
 func WithCache[T any](
