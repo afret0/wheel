@@ -27,8 +27,8 @@ type cacheResult[T any] struct {
 //	// 添加其他需要识别的错误...
 //}
 
-type CacheWrapper struct {
-	L []interface{} `json:"l"`
+type SliceWrapper[T any] struct {
+	L []T `json:"l" msgpack:"l"`
 }
 
 func WithCache[T any](
