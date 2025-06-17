@@ -2,15 +2,16 @@ package tool
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"github.com/spf13/viper"
-	"google.golang.org/grpc/metadata"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/spf13/viper"
+	"google.golang.org/grpc/metadata"
 )
 
 func GetEnv() string {
@@ -145,4 +146,8 @@ func HostId() string {
 	}
 
 	return hostname
+}
+
+func BoolPtr(b bool) *bool {
+	return &b
 }
