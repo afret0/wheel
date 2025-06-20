@@ -2,6 +2,8 @@ package tool
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"os"
 	"strconv"
 	"strings"
@@ -154,4 +156,14 @@ func BoolPtr(b bool) *bool {
 
 func Int64Ptr(i int64) *int64 {
 	return &i
+}
+
+func MD5(s string) string {
+	if s == "" {
+		return ""
+	}
+
+	h := md5.New()
+	h.Write([]byte(s))
+	return hex.EncodeToString(h.Sum(nil))
 }
