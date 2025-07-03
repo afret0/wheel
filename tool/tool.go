@@ -169,7 +169,7 @@ func MD5(s string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func ContainsCMS(ctx context.Context) bool {
+func UrlContainsCMS(ctx context.Context) bool {
 	reqUrl := frame.Request(ctx).RequestURI
 	if strings.Contains(reqUrl, "CMS") {
 		return true
