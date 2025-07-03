@@ -10,6 +10,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/afret0/wheel/frame"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/spf13/viper"
@@ -166,4 +167,12 @@ func MD5(s string) string {
 	h := md5.New()
 	h.Write([]byte(s))
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+func ContainsCMS(ctx context.Context) bool {
+	reqUrl := frame.Request(ctx).RequestURI
+	if strings.Contains(reqUrl, "CMS") {
+		return true
+	}
+	return false
 }
