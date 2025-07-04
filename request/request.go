@@ -9,9 +9,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/google/uuid"
-
 	"github.com/afret0/wheel/log"
+	"github.com/afret0/wheel/tool"
 )
 
 //type RetryOpt struct {
@@ -52,13 +51,15 @@ import (
 func Post(ctx context.Context, ret interface{}, url string, body interface{}, headers ...http.Header) error {
 	lg := log.CtxLogger(ctx).WithField("url", url)
 
+	opId := tool.OpId(ctx)
 	hd := make(http.Header)
 	hd.Add("Content-Type", "application/json")
-	opId := strings.ReplaceAll(uuid.New().String(), "-", "")
+	//opId := strings.ReplaceAll(uuid.New().String(), "-", "")
 	hd.Add("opId", opId)
 	if len(headers) != 0 {
 		hd = headers[0]
 	}
+
 	payloadJson, err := json.Marshal(body)
 	if err != nil {
 		return err
@@ -109,8 +110,8 @@ func MarshallUrlParams(url string, params map[string]string) string {
 func Get(ctx context.Context, ret interface{}, url string, headers ...http.Header) error {
 	lg := log.CtxLogger(ctx).WithField("url", url)
 
+	opId := tool.OpId(ctx)
 	hd := make(http.Header)
-	opId := strings.ReplaceAll(uuid.New().String(), "-", "")
 	hd.Add("opId", opId)
 	if len(headers) != 0 {
 		hd = headers[0]
