@@ -8,7 +8,15 @@ type BaseResponse struct {
 type PageTag struct {
 	PageTag        string `json:"pageTag"`
 	ForwardPageTag string `json:"forwardPageTag"`
-	IsForward      bool   `json:"isForward"`
-	IsLastPage     bool   `json:"isLastPage"`
-	Count          int64  `json:"count"`
+	//IsForward      bool   `json:"isForward"`
+	IsLastPage bool  `json:"isLastPage"`
+	Count      int64 `json:"count"`
+}
+
+func (p *PageTag) Direction() int64 {
+	if p.ForwardPageTag != "" {
+		return 1
+	}
+
+	return -1
 }
