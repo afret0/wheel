@@ -14,9 +14,9 @@ type PageTag struct {
 }
 
 func (p *PageTag) Direction() int64 {
-	if p.ForwardPageTag != "" {
-		return 1
+	if p.PageTag != "" {
+		return -1
 	}
 
-	return -1
+	return 1
 }
