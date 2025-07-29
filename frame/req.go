@@ -29,3 +29,16 @@ func Header(ctx context.Context) http.Header {
 
 	return req.Header
 }
+
+func App(ctx context.Context) string {
+	header := Header(ctx)
+
+	app := header.Get("app")
+
+	return app
+}
+
+func IsHayo(ctx context.Context) bool {
+	app := App(ctx)
+	return app == "hayo"
+}
