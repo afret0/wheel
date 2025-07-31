@@ -31,7 +31,16 @@ func Header(ctx context.Context) http.Header {
 }
 
 func App(ctx context.Context) string {
+	if app := ctx.Value("app"); app != nil {
+		if appStr, ok := app.(string); ok {
+			return appStr
+		}
+	}
+
 	header := Header(ctx)
+	if header == nil {
+		header = make(http.Header)
+	}
 
 	app := header.Get("app")
 
@@ -39,6 +48,7 @@ func App(ctx context.Context) string {
 }
 
 func IsHayo(ctx context.Context) bool {
+
 	app := App(ctx)
 	return app == "hayo"
 }
