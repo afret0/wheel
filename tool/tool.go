@@ -29,6 +29,14 @@ func IsProEnv() bool {
 	return GetEnv() == "pro"
 }
 
+func IsDevEnv() bool {
+	return GetEnv() == "dev"
+}
+
+func IsTestEnv() bool {
+	return GetEnv() == "test"
+}
+
 func Milliseconds() int64 {
 	return time.Now().UnixMilli()
 }
