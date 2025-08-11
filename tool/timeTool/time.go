@@ -23,8 +23,8 @@ func WeekDay() time.Weekday {
 }
 
 func Year() string {
-	//return fmt.Sprintf("%d", time.Now().Year())
-	return fmt.Sprintf("%d", LocalNow().Year())
+	return fmt.Sprintf("%d", time.Now().Year())
+	//return fmt.Sprintf("%d", LocalNow().Year())
 }
 
 // LastMonth 返回上个月的年月格式（例如：202312）
