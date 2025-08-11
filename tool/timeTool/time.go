@@ -7,29 +7,29 @@ import (
 )
 
 func Week() string {
-	year, week := time.Now().ISOWeek()
+	year, week := LocalNow().ISOWeek()
 	return fmt.Sprintf("%d%02d", year, week)
 }
 
 func LastWeek() string {
 	// 获取7天前的时间
-	lastWeek := time.Now().AddDate(0, 0, -7)
+	lastWeek := LocalNow().AddDate(0, 0, -7)
 	year, week := lastWeek.ISOWeek()
 	return fmt.Sprintf("%d%02d", year, week)
 }
 
 func WeekDay() time.Weekday {
-	return time.Now().Weekday()
+	return LocalNow().Weekday()
 }
 
 func Year() string {
-	return fmt.Sprintf("%d", time.Now().Year())
+	return fmt.Sprintf("%d", LocalNow().Year())
 	//return fmt.Sprintf("%d", LocalNow().Year())
 }
 
 // LastMonth 返回上个月的年月格式（例如：202312）
 func LastMonth() string {
-	now := time.Now()
+	now := LocalNow()
 
 	// 获取当前年月
 	currentYear := now.Year()
@@ -51,23 +51,23 @@ func LastMonth() string {
 }
 
 func Month() string {
-	return fmt.Sprintf("%s%02d", Year(), time.Now().Month())
+	return fmt.Sprintf("%s%02d", Year(), LocalNow().Month())
 }
 
 func Day() string {
-	return fmt.Sprintf("%s%02d", Month(), time.Now().Day())
+	return fmt.Sprintf("%s%02d", Month(), LocalNow().Day())
 }
 
 func Hour() string {
-	return fmt.Sprintf("%s%02d", Day(), time.Now().Hour())
+	return fmt.Sprintf("%s%02d", Day(), LocalNow().Hour())
 }
 
 func Minute() string {
-	return fmt.Sprintf("%s%02d", Hour(), time.Now().Minute())
+	return fmt.Sprintf("%s%02d", Hour(), LocalNow().Minute())
 }
 
 func Second() string {
-	return fmt.Sprintf("%s%02d", Minute(), time.Now().Second())
+	return fmt.Sprintf("%s%02d", Minute(), LocalNow().Second())
 }
 
 func MidnightTody() time.Time {
@@ -80,11 +80,11 @@ func MidnightToday() time.Time {
 	//	panic(err)
 	//}
 	//
-	//return time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, location)
+	//return time.Date(LocalNow().Year(), LocalNow().Month(), LocalNow().Day(), 0, 0, 0, 0, location)
 
 	//location := time.FixedZone("UTC+8", 8*60*60) // 东八区，偏移量为8小时(8*60*60秒)
 
-	now := time.Now()
+	now := LocalNow()
 	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, Location())
 }
 
