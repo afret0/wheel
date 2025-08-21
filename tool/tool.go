@@ -186,7 +186,7 @@ func UrlContainsCMS(ctx context.Context) bool {
 	return false
 }
 
-func formatToWan(num int64) string {
+func FormatToWan(num int64) string {
 	if num < 10000 {
 		return fmt.Sprintf("%d", num)
 	}
