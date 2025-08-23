@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -187,10 +188,16 @@ func UrlContainsCMS(ctx context.Context) bool {
 }
 
 func FormatToWan(num int64) string {
+	fuhao := ""
+	if num < 0 {
+		fuhao = "-"
+	}
+	num = int64(math.Abs(float64(num)))
+
 	if num < 10000 {
 		return fmt.Sprintf("%d", num)
 	}
 
 	wan := float64(num) / 10000.0
-	return fmt.Sprintf("%.2fw", wan)
+	return fmt.Sprintf("%s%.2fw", fuhao, wan)
 }
