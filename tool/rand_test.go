@@ -13,7 +13,7 @@ func Test_RandInt64InRange(t *testing.T) {
 }
 
 func Test_FormatToWan(t *testing.T) {
-	l := []int64{1, 2, 300000, -23234234, -234234}
+	l := []int64{1, 2, 300000, -1, -100, -2 - 23234234, -234234}
 
 	for _, num := range l {
 		t.Logf("num: %d, to wan: %s", num, FormatToWan(num))

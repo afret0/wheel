@@ -195,7 +195,7 @@ func FormatToWan(num int64) string {
 	num = int64(math.Abs(float64(num)))
 
 	if num < 10000 {
-		return fmt.Sprintf("%d", num)
+		return fmt.Sprintf("%s%d", fuhao, num)
 	}
 
 	wan := float64(num) / 10000.0
