@@ -57,6 +57,10 @@ func Publish(ctx context.Context, topic string, msg interface{}) error {
 
 func RunConsumer(topic string, f func(msg string) error) {
 
+	if rc == nil {
+		panic("redis client is nil, please call Init first")
+	}
+
 	c := tool.NewCtxBK()
 
 	sub := rc.Subscribe(c, topic)
