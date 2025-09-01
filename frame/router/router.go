@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/afret0/wheel/tool"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc/status"
 
@@ -123,7 +124,8 @@ func (r *Router) registerRouter(e *gin.Engine) {
 					}
 
 				}
-				if sr.Data == nil {
+				//if sr.Data == nil {
+				if tool.IsInterfaceNil(sr.Data) {
 					sr.Data = make(map[string]interface{})
 				}
 				ctx.JSON(200, sr)

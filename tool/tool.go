@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -200,4 +201,8 @@ func FormatToWan(num int64) string {
 
 	wan := float64(num) / 10000.0
 	return fmt.Sprintf("%s%.2fw", fuhao, wan)
+}
+
+func IsInterfaceNil(v interface{}) bool {
+	return v == nil || (reflect.ValueOf(v).Kind() == reflect.Ptr && reflect.ValueOf(v).IsNil())
 }
