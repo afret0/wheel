@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/afret0/wheel/lock"
 	"github.com/afret0/wheel/log"
@@ -55,10 +56,10 @@ func Publish(ctx context.Context, topic string, msg interface{}) error {
 	}
 }
 
-func RunConsumer(topic string, f func(msg string) error) {
+func RunConsumer(topic string, f func(msg string) error) error {
 
 	if rc == nil {
-		panic("redis client is nil, please call Init first")
+		return fmt.Errorf("redis client is nil, please call Init first")
 	}
 
 	c := tool.NewCtxBK()
@@ -88,7 +89,10 @@ func RunConsumer(topic string, f func(msg string) error) {
 		_, err := lock.GetLocker(rc).Obtain(ctx, lockK, 10)
 		if err != nil {
 			if errors.Is(err, redislock.ErrNotObtained) {
-
+				if os.Getenv("DEBUD") != "" {
+					lg.Infof("lock %s not obtained, msg: %s", lockK, d)
+				}
+				continue
 			}
 		}
 
