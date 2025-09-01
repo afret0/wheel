@@ -15,7 +15,8 @@ func Test_pubSub(t *testing.T) {
 		Username: "kiwi0621",
 		Password: "Qiyiguo0621",
 	})
-	Init(&Option{RedisClient: RC, Service: "test"})
+
+	pb := GetSvc(&Option{RedisClient: RC, Service: "test"})
 
 	topic := "test-topic"
 
@@ -25,12 +26,15 @@ func Test_pubSub(t *testing.T) {
 			return nil
 		}
 
-		RunConsumer(topic, f)
+		err := pb.RunConsumer(topic, f)
+		if err != nil {
+			t.Errorf("%v", err)
+		}
 	}()
 
 	for {
 		ctx := tool.NewCtxBK()
-		err := Publish(ctx, topic, fmt.Sprintf("%s", time.Now().String()))
+		err := pb.Publish(ctx, topic, fmt.Sprintf("%s", time.Now().String()))
 		if err != nil {
 			t.Errorf("publish error: %v", err)
 		}

@@ -19,10 +19,17 @@ type Option struct {
 	Service     string
 }
 
-var rc redis.UniversalClient
-var service string
+//var rc redis.UniversalClient
+//var service string
 
-func Init(opt *Option) {
+type Svc struct {
+	rc      redis.UniversalClient
+	service string
+}
+
+var svc *Svc
+
+func GetSvc(opt *Option) *Svc {
 	if opt == nil {
 		panic("opt is nil")
 	}
@@ -35,36 +42,40 @@ func Init(opt *Option) {
 		panic("opt service is empty")
 	}
 
-	if rc != nil {
+	if svc != nil {
 		panic("redis client already initialized")
 	}
 
-	rc = opt.RedisClient
-	service = opt.Service
+	svc = &Svc{
+		rc:      opt.RedisClient,
+		service: opt.Service,
+	}
+
+	return svc
 }
 
-func Publish(ctx context.Context, topic string, msg interface{}) error {
+func (s *Svc) Publish(ctx context.Context, topic string, msg interface{}) error {
 	switch msg.(type) {
 	case string:
-		return rc.Publish(ctx, topic, msg.(string)).Err()
+		return s.rc.Publish(ctx, topic, msg.(string)).Err()
 	default:
-		s, err := tool.Marshal(msg)
+		b, err := tool.Marshal(msg)
 		if err != nil {
 			return err
 		}
-		return rc.Publish(ctx, topic, s).Err()
+		return s.rc.Publish(ctx, topic, b).Err()
 	}
 }
 
-func RunConsumer(topic string, f func(msg string) error) error {
+func (s *Svc) RunConsumer(topic string, f func(msg string) error) error {
 
-	if rc == nil {
+	if s.rc == nil {
 		return fmt.Errorf("redis client is nil, please call Init first")
 	}
 
 	c := tool.NewCtxBK()
 
-	sub := rc.Subscribe(c, topic)
+	sub := s.rc.Subscribe(c, topic)
 	defer sub.Close()
 
 	if _, err := sub.Receive(c); err != nil {
@@ -75,7 +86,7 @@ func RunConsumer(topic string, f func(msg string) error) error {
 
 	for {
 		ctx := tool.NewCtxBK()
-		lg := log.CtxLogger(ctx).WithFields(logrus.Fields{"topic": topic, "service": service})
+		lg := log.CtxLogger(ctx).WithFields(logrus.Fields{"topic": topic, "service": s.service})
 
 		m := <-msgCh
 		if m == nil {
@@ -85,8 +96,8 @@ func RunConsumer(topic string, f func(msg string) error) error {
 
 		d := m.Payload
 
-		lockK := fmt.Sprintf("%s:pub-sub:consumer:lock:%s:%s", service, topic, tool.MD5(d))
-		_, err := lock.GetLocker(rc).Obtain(ctx, lockK, 10)
+		lockK := fmt.Sprintf("%s:pub-sub:consumer:lock:%s:%s", s.service, topic, tool.MD5(d))
+		_, err := lock.GetLocker(s.rc).Obtain(ctx, lockK, 10)
 		if err != nil {
 			if errors.Is(err, redislock.ErrNotObtained) {
 				if os.Getenv("DEBUD") != "" {
