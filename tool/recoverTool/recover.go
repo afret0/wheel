@@ -2,9 +2,10 @@ package recoverTool
 
 import (
 	"fmt"
+	"runtime/debug"
+
 	"github.com/afret0/wheel/log"
 	"github.com/sirupsen/logrus"
-	"runtime/debug"
 )
 
 type RecoverTool struct {
@@ -70,6 +71,27 @@ func (r *RecoverTool) Recover() {
 		return
 	}
 
+	r.lg.Errorf("recover tool caught a panic: %v\n%s", ro, debug.Stack())
+
+	// 处理 panic 信息，例如记录日志、发送通知等
+	// ...
+
+	// 这里可以调用你自己的处理函数，传入 panic 信息和堆栈信息
+	//fmt.Printf("panic: %v\n", ro)
+	//fmt.Printf("stack: %s\n", debug.Stack())
+
+	// 发送邮件
+	if r.emailSvc == nil || len(r.emailReceiver) == 0 {
+		r.lg.Warnf("recover tool emailSvc is nil or emailReceiver is empty, skip sending email")
+		return
+	}
+
+	// 处理 panic 信息和堆栈信息
+	//fmt.Printf("panic: %v\n", ro)
+	//fmt.Printf("stack: %s\n", debug.Stack())
+
+	// 发送邮件
+	//r.emailSvc.Send(r.emailReceiver, fmt.Sprintf(" [ %s ]  %v [ %s ] ", r.service, ro, r.env), string(debug.Stack()))
 	r.HandleRecover(ro, string(debug.Stack()))
 }
 
