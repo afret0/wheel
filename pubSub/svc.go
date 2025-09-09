@@ -29,7 +29,17 @@ type Svc struct {
 
 var svc *Svc
 
-func GetSvc(opt *Option) *Svc {
+func GetSvc(optChain ...*Option) *Svc {
+	if svc != nil {
+		return svc
+	}
+
+	if len(optChain) == 0 {
+		panic("opt is nil")
+	}
+
+	opt := optChain[0]
+
 	if opt == nil {
 		panic("opt is nil")
 	}
@@ -42,9 +52,9 @@ func GetSvc(opt *Option) *Svc {
 		panic("opt service is empty")
 	}
 
-	if svc != nil {
-		panic("redis client already initialized")
-	}
+	//if svc != nil {
+	//	panic("redis client already initialized")
+	//}
 
 	svc = &Svc{
 		rc:      opt.RedisClient,
