@@ -18,6 +18,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 func GetEnv() string {
@@ -205,4 +206,15 @@ func FormatToWan(num int64) string {
 
 func IsInterfaceNil(v interface{}) bool {
 	return v == nil || (reflect.ValueOf(v).Kind() == reflect.Ptr && reflect.ValueOf(v).IsNil())
+}
+
+func ErrCode(err error) int {
+
+	st, ok := status.FromError(err)
+	if !ok {
+		return -1
+	}
+
+	code := st.Code()
+	return int(code)
 }
