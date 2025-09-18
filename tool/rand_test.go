@@ -19,3 +19,10 @@ func Test_FormatToWan(t *testing.T) {
 		t.Logf("num: %d, to wan: %s", num, FormatToWan(num))
 	}
 }
+
+func Test_(t *testing.T) {
+	for i := 10; i < 10000; i += 10 {
+		v := i / 100
+		t.Logf("i: %d, v: %d", i, v)
+	}
+}

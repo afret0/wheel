@@ -4,11 +4,10 @@ import (
 	"context"
 	"reflect"
 
+	"github.com/afret0/wheel/log"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-
-	"github.com/afret0/wheel/log"
 )
 
 type Repository struct {
@@ -22,9 +21,14 @@ func GetRepository(db *MongoDB, collection string) *Repository {
 		panic("collection name is empty")
 	}
 
-	r := new(Repository)
-	r.collection = db.GetCollection(collection)
-	r.logger = log.GetLogger()
+	//r := new(Repository)
+	//r.collection = db.GetCollection(collection)
+	//r.logger = log.GetLogger()
+
+	r := &Repository{
+		collection: db.GetCollection(collection),
+		logger:     log.GetLogger(),
+	}
 
 	return r
 }
