@@ -33,8 +33,8 @@ func TestWeightedRandom_Roll_SingleItem(t *testing.T) {
 func TestWeightedRandom_Roll_MultipleItems(t *testing.T) {
 	pool := []*Item{
 		{Name: "name1", Weight: 1000},
-		//{Name: "name2", Weight: 1000},
-		//{Name: "name3", Weight: 1000},
+		{Name: "name2", Weight: 1000},
+		{Name: "name3", Weight: 1000},
 		//{Name: "name4", Weight: 1000},
 		//{Name: "name5", Weight: 1000},
 		//{Name: "name6", Weight: 1000},
