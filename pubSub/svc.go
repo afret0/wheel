@@ -104,7 +104,7 @@ func (s *Svc) RunConsumer(topic string, f func(msg string) error) error {
 		_, err := lock.GetLocker(s.rc).Obtain(ctx, lockK, 10)
 		if err != nil {
 			if errors.Is(err, redislock.ErrNotObtained) {
-				if os.Getenv("DEBUD") != "" {
+				if os.Getenv("DEBUD") == "TRUE" {
 					lg.Infof("lock %s not obtained, msg: %s", lockK, d)
 				}
 				continue

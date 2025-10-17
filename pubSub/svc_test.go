@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/afret0/wheel/tool"
 	"github.com/redis/go-redis/v9"
+
+	"github.com/afret0/wheel/tool"
 )
 
 func Test_pubSub(t *testing.T) {
@@ -16,7 +17,7 @@ func Test_pubSub(t *testing.T) {
 		Password: "Qiyiguo0621",
 	})
 
-	pb := GetSvc(&Option{RedisClient: RC, Service: "test"})
+	pb := NewSvc(&Option{RedisClient: RC, Service: "test"})
 
 	topic := "test-topic"
 
