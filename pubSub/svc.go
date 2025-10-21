@@ -111,7 +111,9 @@ func (s *Svc) RunConsumer(topic string, f func(msg string) error) error {
 			}
 		}
 
-		lg.Infof("recv msg: %s", d)
+		if os.Getenv("DEBUD") == "TRUE" {
+			lg.Infof("recv msg: %s", d)
+		}
 
 		err = f(d)
 		if err != nil {
