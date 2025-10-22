@@ -218,3 +218,11 @@ func ErrCode(err error) int {
 	code := st.Code()
 	return int(code)
 }
+
+func Debug() bool {
+	if os.Getenv("DEBUG") == "true" || os.Getenv("DEBUG") == "TRUE" {
+		return true
+	}
+
+	return false
+}
