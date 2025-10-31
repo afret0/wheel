@@ -16,10 +16,14 @@ import (
 	"github.com/afret0/wheel/frame"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
+
+func init() {
+	logrus.SetFormatter(&logrus.JSONFormatter{PrettyPrint: false, TimestampFormat: "2006-01-02 15:04:05"})
+}
 
 func GetEnv() string {
 	env := os.Getenv("environment")
@@ -74,56 +78,6 @@ func UUIDWithoutHyphen() string {
 	return strings.ReplaceAll(uuid.New().String(), "-", "")
 }
 
-func OpId(ctx context.Context) string {
-	opIdValue := ctx.Value("opId")
-	opId, ok := opIdValue.(string)
-	if !ok {
-		return UUIDWithoutHyphen()
-	}
-	return opId
-}
-
-func GrpcCtx(ctx context.Context) context.Context {
-	opId := OpId(ctx)
-
-	//md := metadata.Pairs("opid", opId)
-	//
-	//if md, ok := metadata.FromIncomingContext(ctx); ok {
-	//	if val, exists := md["opid"]; exists && len(val) > 0 {
-	//		opId = val[0]
-	//	} else {
-	//		md["opid"] = []string{opId}
-	//		ctx = metadata.NewOutgoingContext(ctx, md)
-	//	}
-	//}
-
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		md = metadata.Pairs("opid", opId)
-		ctx = metadata.NewOutgoingContext(ctx, md)
-	} else {
-		if val, exists := md["opid"]; exists && len(val) > 0 {
-			opId = val[0]
-		} else {
-			md["opid"] = []string{opId}
-			//newMd := metadata.Join(md, metadata.Pairs("opid", opId))
-			//ctx = metadata.NewOutgoingContext(ctx, newMd)
-			ctx = metadata.NewOutgoingContext(ctx, md)
-		}
-	}
-
-	return ctx
-}
-
-func OpIdWithoutDefault(ctx context.Context) string {
-	opIdValue := ctx.Value("opId")
-	opId, ok := opIdValue.(string)
-	if !ok {
-		return ""
-	}
-	return opId
-}
-
 func IsLetter(s string) bool {
 	for _, r := range s {
 		if !unicode.IsLetter(r) {
@@ -131,15 +85,6 @@ func IsLetter(s string) bool {
 		}
 	}
 	return true
-}
-
-func NewCtxBK() context.Context {
-	return context.WithValue(context.Background(), "opId", strings.ReplaceAll(uuid.New().String(), "-", ""))
-}
-
-func RenewCtx(ctx context.Context) context.Context {
-	opId := OpId(ctx)
-	return context.WithValue(context.Background(), "opId", opId)
 }
 
 func ClientIP(ctx *gin.Context) string {
