@@ -3,7 +3,6 @@ package tool
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -85,7 +84,7 @@ func CallerInfo(skip int) string {
 		return ""
 	}
 	fn := runtime.FuncForPC(pc)
-	return fmt.Sprintf("%s:%d %s", filepath.Base(file), line, fn.Name())
+	return fmt.Sprintf("%s:%d %s", file, line, fn.Name())
 }
 
 func fn() string {
