@@ -7,7 +7,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/afret0/wheel/log"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/metadata"
@@ -38,7 +37,7 @@ func GrpcCtx(ctx context.Context) context.Context {
 
 	spanId := UUIDWithoutHyphen()
 	opId = fmt.Sprintf("%s-%s", opId, spanId)
-	log.GetLogger().Infof("convert opId: %s, callerInfo: %s", opId, CallerInfo(2))
+	logrus.Infof("convert opId: %s, caller: %s", opId, CallerInfo(2))
 
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
