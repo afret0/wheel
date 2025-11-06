@@ -78,6 +78,14 @@ func RenewCtx(ctx context.Context) context.Context {
 	return context.WithValue(context.Background(), "opId", opId)
 }
 
+func ConvertOpId(opId string) string {
+	spanId := UUIDWithoutHyphen()
+	opId = fmt.Sprintf("%s-%s", opId, spanId)
+	logrus.Infof("convert opId: %s, caller: %s", opId, CallerInfo(2))
+
+	return opId
+}
+
 func CallerInfo(skip int) string {
 	pc, file, line, ok := runtime.Caller(skip)
 	if !ok {
