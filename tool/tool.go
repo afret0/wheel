@@ -164,8 +164,16 @@ func ErrCode(err error) int {
 	return int(code)
 }
 
-func Debug() bool {
-	if os.Getenv("DEBUG") == "true" || os.Getenv("DEBUG") == "TRUE" {
+func Debug(keyChains ...string) bool {
+	key := "DEBUG"
+	if len(keyChains) > 0 {
+		key = keyChains[0]
+	}
+
+	debug := os.Getenv(key)
+
+	switch debug {
+	case "true", "TRUE", "1", "yes", "YES":
 		return true
 	}
 
