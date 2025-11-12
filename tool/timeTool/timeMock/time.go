@@ -70,23 +70,23 @@ func now() time.Time {
 	return time.Now().In(timeTool.Location())
 }
 
-func Now(ctx context.Context) (time.Time, error) {
+func Now(ctx context.Context) time.Time {
 	lg := log.CtxLogger(ctx).WithFields(logrus.Fields{})
 
 	if !tool.Debug(debugTag) {
-		return now(), nil
+		return now()
 	}
 
 	ts, err := rc.Get(ctx, k).Int64()
 	if err != nil {
 		lg.Errorf("err: %s", err)
-		return now(), err
+		return now()
 	}
 
 	if ts == 0 {
 		lg.Errorf("timestamp is zero")
-		return now(), nil
+		return now()
 	}
 
-	return time.UnixMilli(ts).In(timeTool.Location()), nil
+	return time.UnixMilli(ts).In(timeTool.Location())
 }
