@@ -95,6 +95,10 @@ func Location() *time.Location {
 }
 
 func LocalNow() time.Time {
+	return Now()
+}
+
+func Now() time.Time {
 	return time.Now().In(Location())
 }
 
