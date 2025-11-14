@@ -51,7 +51,7 @@ import (
 func Post(ctx context.Context, ret interface{}, url string, body interface{}, headers ...http.Header) error {
 	lg := log.CtxLogger(ctx).WithField("url", url)
 
-	opId := tool.OpId(ctx)
+	opId := tool.ConvertOpId(tool.OpId(ctx))
 	hd := make(http.Header)
 	hd.Add("Content-Type", "application/json")
 	//opId := strings.ReplaceAll(uuid.New().String(), "-", "")
@@ -110,7 +110,7 @@ func MarshallUrlParams(url string, params map[string]string) string {
 func Get(ctx context.Context, ret interface{}, url string, headers ...http.Header) error {
 	lg := log.CtxLogger(ctx).WithField("url", url)
 
-	opId := tool.OpId(ctx)
+	opId := tool.ConvertOpId(tool.OpId(ctx))
 	hd := make(http.Header)
 	hd.Add("opId", opId)
 	if len(headers) != 0 {
