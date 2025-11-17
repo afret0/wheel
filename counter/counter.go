@@ -109,13 +109,22 @@ func (c *Counter) Get(ctx context.Context, key string) (int64, error) {
 	return r, nil
 }
 
-func (c *Counter) IsExceeded(ctx context.Context, key string, limit int64) (bool, error) {
+func (c *Counter) IsExceeded(ctx context.Context, key string, limit int64, incrTagChain ...int64) (bool, error) {
 	count, err := c.Get(ctx, key)
 	if err != nil {
 		return false, err
 	}
+
+	if len(incrTagChain) > 0 && incrTagChain[0] > 0 {
+		_, err = c.Incr(ctx, key, incrTagChain[0])
+		if err != nil {
+			return false, err
+		}
+	}
+
 	if count >= limit {
 		return true, nil
 	}
+
 	return false, nil
 }
