@@ -16,7 +16,8 @@ import (
 var mx sync.Mutex
 var rc redis.UniversalClient
 var k string
-var optTag bool
+
+//var optTag bool
 
 const debugTag = "TIME_TOOL_DEBUG"
 
@@ -40,8 +41,6 @@ func SetOption(opt *Option) error {
 	rc = opt.RedisClient
 	k = fmt.Sprintf("%s:time_tool:ts", opt.KeyPrefix)
 
-	optTag = true
-
 	return nil
 }
 
@@ -53,10 +52,6 @@ func SetTime(ctx context.Context, ts int64) error {
 
 	mx.Lock()
 	defer mx.Unlock()
-
-	if !optTag {
-		return fmt.Errorf("option not set")
-	}
 
 	if ts == 0 {
 		return fmt.Errorf("timestamp is zero")
@@ -75,6 +70,10 @@ func Now(ctx context.Context) time.Time {
 
 	if !tool.Debug(debugTag) {
 		return now()
+	}
+
+	if rc == nil {
+		panic("redis client is nil")
 	}
 
 	ts, err := rc.Get(ctx, k).Int64()
