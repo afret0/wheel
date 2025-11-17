@@ -85,7 +85,7 @@ func Now(ctx context.Context) time.Time {
 	}
 
 	if ts == 0 {
-		lg.Errorf("timestamp is zero")
+		//lg.Errorf("timestamp is zero")
 		return now()
 	}
 
