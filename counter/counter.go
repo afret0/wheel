@@ -115,15 +115,15 @@ func (c *Counter) IsExceeded(ctx context.Context, key string, limit int64, incrT
 		return false, err
 	}
 
+	if count >= limit {
+		return true, nil
+	}
+
 	if len(incrTagChain) > 0 && incrTagChain[0] > 0 {
 		_, err = c.Incr(ctx, key, incrTagChain[0])
 		if err != nil {
 			return false, err
 		}
-	}
-
-	if count >= limit {
-		return true, nil
 	}
 
 	return false, nil
