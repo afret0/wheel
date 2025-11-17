@@ -2,6 +2,7 @@ package timeMock
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -78,7 +79,7 @@ func Now(ctx context.Context) time.Time {
 	}
 
 	ts, err := rc.Get(ctx, k).Int64()
-	if err != nil {
+	if err != nil && !errors.Is(err, redis.Nil) {
 		lg.Errorf("err: %s", err)
 		return now()
 	}
