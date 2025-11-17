@@ -73,7 +73,7 @@ func Now(ctx context.Context) time.Time {
 	}
 
 	if rc == nil {
-		panic("redis client is nil")
+		panic("tm redis client is nil")
 	}
 
 	ts, err := rc.Get(ctx, k).Int64()
