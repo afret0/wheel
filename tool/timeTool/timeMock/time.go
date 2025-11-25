@@ -70,6 +70,7 @@ func Now(ctx context.Context) time.Time {
 	lg := log.CtxLogger(ctx).WithFields(logrus.Fields{})
 
 	if !tool.Debug(debugTag) {
+		lg.Infof("debug mode not enabled")
 		return now()
 	}
 
