@@ -25,7 +25,12 @@ func init() {
 	logrus.SetFormatter(&logrus.JSONFormatter{PrettyPrint: false, TimestampFormat: "2006-01-02 15:04:05"})
 }
 
+// GetEnv deprecated, use Env instead
 func GetEnv() string {
+	return Env()
+}
+
+func Env() string {
 	env := os.Getenv("environment")
 	if env == "" {
 		env = os.Getenv("ENV")
