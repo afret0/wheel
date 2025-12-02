@@ -126,6 +126,8 @@
             font-size: 14px;
             line-height: 1.6;
             transition: all 0.3s ease;
+            overflow-y: hidden;
+            resize: vertical;
         }
 
         input:focus,
@@ -525,6 +527,24 @@
         window.addEventListener('load', function() {
             document.getElementById('generateUUID').click();
             document.getElementById('generatePlainUUID').click();
+
+            // 为所有textarea添加自动选中和自适应高度功能
+            document.querySelectorAll('textarea').forEach(textarea => {
+                // 自动选中
+                textarea.addEventListener('focus', function() {
+                    if (this.value.trim() && !this.readOnly) {
+                        this.select();
+                    }
+                });
+                
+                // 自适应高度
+                function autoResize() {
+                    textarea.style.height = 'auto';
+                    textarea.style.height = Math.max(60, textarea.scrollHeight) + 'px';
+                }
+                textarea.addEventListener('input', autoResize);
+                autoResize();
+            });
         });
     </script>
 </body>

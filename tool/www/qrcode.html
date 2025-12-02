@@ -121,6 +121,8 @@
             font-size: 14px;
             line-height: 1.6;
             transition: all 0.3s ease;
+            overflow-y: hidden;
+            resize: vertical;
         }
 
         input:focus,
@@ -325,6 +327,15 @@
 
         window.onload = function() {
             initQRCode();
+
+            // 为输入框添加自动选中功能
+            document.querySelectorAll('input[type="text"], textarea').forEach(input => {
+                input.addEventListener('focus', function() {
+                    if (this.value.trim()) {
+                        this.select();
+                    }
+                });
+            });
         };
 
         function initQRCode() {
