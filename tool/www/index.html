@@ -3,154 +3,243 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>tool</title>
     <style>
         /* 原有样式保持不变 */
-        body {
-            font-family: 'Arial', sans-serif;
+        
+        * {
             margin: 0;
             padding: 0;
-            background-color: #81B446;
-            color: #333333;
+            box-sizing: border-box;
         }
 
-        /* 添加导航栏样式 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #2d3748;
+        }
+
         .sidebar {
-            width: 200px;
+            width: 240px;
             height: 100vh;
-            background-color: #81B446;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
             position: fixed;
             left: 0;
             top: 0;
-            padding-top: 20px;
-            color: white;
+            padding: 30px 0;
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+            z-index: 100;
         }
 
         .sidebar h1 {
-            font-size: 20px;
-            padding: 0 20px;
-            margin-bottom: 30px;
-            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            padding: 0 25px;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .nav-item {
-            padding: 15px 20px;
+            padding: 14px 25px;
             cursor: pointer;
-            transition: background-color 0.3s;
-            color: white;
+            transition: all 0.3s ease;
+            color: #4a5568;
             text-decoration: none;
             display: block;
-            text-align: left;
-            /* 确保文本左对齐 */
+            font-size: 15px;
+            font-weight: 500;
+            border-left: 3px solid transparent;
         }
 
         .nav-item:hover {
-            background-color: #2A477A;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            border-left-color: #667eea;
         }
 
         .nav-item.active {
-            background-color: #2A477A;
-            border-left: 4px solid #5F383C;
-            /* 如果添加了左边框，可能需要调整padding */
-            padding-left: 16px;
-            /* 20px - 4px(border) = 16px */
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+            border-left-color: #667eea;
+            font-weight: 600;
         }
 
-        /* 修改主内容区域样式 */
         .main-content {
-            margin-left: 200px;
-            padding: 20px;
-            max-width: 800px;
-            margin-right: auto;
+            margin-left: 240px;
+            padding: 30px;
+            min-height: 100vh;
         }
 
-        /* 其他原有样式 */
         .container {
-            background-color: #F5F5F0;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .section {
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: #FFF2CC;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .section:hover {
+            border-color: #cbd5e0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .section:last-child {
+            margin-bottom: 0;
         }
 
         h2 {
-            color: #444444;
+            color: #2d3748;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background-color: #ffffff;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .copy-button {
+            padding: 6px 12px;
+            font-size: 13px;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+        }
+
+        pre {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 16px;
+            overflow: auto;
+            border: 1px solid #e2e8f0;
+            line-height: 1.6;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+            font-size: 13px;
+            color: #2d3748;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+
+        /* Page-specific styles */
+        h2 {
+            color: #2d3748;
+            font-size: 20px;
+            font-weight: 700;
             margin-bottom: 15px;
         }
 
         .timestamp {
             font-size: 18px;
-            font-weight: bold;
-            color: #345995;
-            font-family: monospace;
+            font-weight: 600;
+            color: #667eea;
+            font-family: 'Monaco', 'Menlo', monospace;
             min-width: 200px;
             display: inline-block;
             text-align: left;
         }
 
-        input,
-        button {
-            padding: 8px;
-            margin: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #FCFFE9;
-        }
-
-        button {
-            background-color: #345995;
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #2A477A;
-        }
-
         .result {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #FDE0D9;
-            border-radius: 4px;
-            text-align: left;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
         }
 
         .result-container {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin: 5px 0;
+            gap: 12px;
+            margin: 8px 0;
         }
 
         .timestamp-container {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 12px;
+            margin-bottom: 12px;
         }
 
         .label {
-            min-width: 120px;
+            min-width: 140px;
             display: inline-block;
+            font-weight: 500;
+            color: #4a5568;
         }
 
         .copy-button {
-            padding: 4px 8px;
-            font-size: 14px;
-            background-color: #3C8C7C;
+            padding: 6px 12px;
+            font-size: 13px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
         }
 
         .copy-button:hover {
-            background-color: #2F6F62;
+            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
         }
 
         .tooltip {
@@ -161,11 +250,11 @@
         .tooltip .tooltiptext {
             visibility: hidden;
             width: 80px;
-            background-color: #555;
+            background-color: #2d3748;
             color: #fff;
             text-align: center;
             border-radius: 6px;
-            padding: 5px;
+            padding: 6px;
             position: absolute;
             z-index: 1;
             bottom: 125%;
@@ -185,15 +274,13 @@
 
 <body>
     <!-- 添加侧边导航栏 -->
-    <div class="sidebar">
-        <h1>tool</h1>
-        <a href="index.html" class="nav-item active">timestamp</a>
-        <a href="base64.html" class="nav-item">base64</a>
-        <a href="qrcode.html" class="nav-item">qrcode</a>
-        <a href="log.html" class="nav-item">log</a>
-        <a href="proto.html" class="nav-item">proto</a>
-
-        <!-- 可以继续添加更多导航项 -->
+        <div class="sidebar">
+        <h1>Tool</h1>
+        <a href="index.html" class="nav-item active">Timestamp</a>
+        <a href="proto.html" class="nav-item">Proto</a>
+        <a href="base64.html" class="nav-item">Base64</a>
+        <a href="qrcode.html" class="nav-item">QRCode</a>
+        <a href="log.html" class="nav-item">Log</a>
     </div>
     <!-- 主要内容区域 -->
     <div class="main-content">
