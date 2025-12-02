@@ -442,6 +442,16 @@
             if (!el) return;
             copyText(el.textContent || '').catch(() => {});
         });
+
+        // 为textarea添加自动选中功能
+        const logInput = document.getElementById('logInput');
+        if (logInput) {
+            logInput.addEventListener('focus', function() {
+                if (this.value.trim()) {
+                    this.select();
+                }
+            });
+        }
     </script>
 </body>
 
