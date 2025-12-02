@@ -84,7 +84,8 @@
 
         textarea {
             width: 100%;
-            min-height: 200px;
+            min-height: 350px;
+            max-height: none;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
@@ -93,6 +94,7 @@
             resize: vertical;
             font-family: 'Courier New', monospace;
             font-size: 13px;
+            overflow-y: hidden;
         }
 
         .output-grid {
@@ -597,6 +599,24 @@
             clearTimeout(convertTimer);
             convertTimer = setTimeout(convert, 500);
         });
+
+        // 点击输入框时自动全选内容
+        document.getElementById('inputText').addEventListener('focus', function() {
+            if (this.value.trim()) {
+                this.select();
+            }
+        });
+
+        // 自动调整输入框高度以适应内容
+        const textarea = document.getElementById('inputText');
+        function autoResize() {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.max(350, textarea.scrollHeight) + 'px';
+        }
+        
+        textarea.addEventListener('input', autoResize);
+        // 初始化时也调用一次
+        autoResize();
     </script>
 </body>
 
