@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title>tool</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #81B446;
+            color: #333333;
+        }
+
+        .sidebar {
+            width: 200px;
+            height: 100vh;
+            background-color: #81B446;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding-top: 20px;
+            color: white;
+        }
+
+        .sidebar h1 {
+            font-size: 20px;
+            padding: 0 20px;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            color: white;
+            text-decoration: none;
+            display: block;
+            text-align: left;
+        }
+
+        .nav-item:hover {
+            background-color: #2A477A;
+        }
+
+        .nav-item.active {
+            background-color: #2A477A;
+            border-left: 4px solid #5F383C;
+            padding-left: 16px;
+        }
+
+        .main-content {
+            margin-left: 200px;
+            padding: 20px;
+            max-width: 980px;
+            margin-right: auto;
+        }
+
+        .container {
+            background-color: #F5F5F0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #FFF2CC;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
+        h2 {
+            color: #444444;
+            margin-bottom: 15px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 160px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #FCFFE9;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+
+        pre {
+            background: #eaf7e6; /* 柔和的绿色背景 */
+            border-radius: 6px;
+            padding: 12px;
+            overflow: auto;
+            border: 1px solid #cfe9c8;
+            line-height: 1.5;
+        }
+
+        .row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .col {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        button {
+            background-color: #345995;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #2A477A;
+        }
+
+        .small {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .muted {
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <h1>tool</h1>
+        <a href="index.html" class="nav-item">timestamp</a>
+        <a href="base64.html" class="nav-item">base64</a>
+        <a href="qrcode.html" class="nav-item">qrcode</a>
+        <a href="log.html" class="nav-item active">log</a>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="section">
+                <h2>粘贴日志，自动提取 content 并深度解析</h2>
+                <textarea id="logInput" placeholder="在此粘贴整行日志（包含 content 字段的 JSON 日志）"></textarea>
+                <div style="margin-top: 10px; display:flex; gap:10px; align-items:center;">
+                    <button id="btnParse">解析</button>
+                    <span class="muted">说明：仅保留 content 内内容，并将可反序列化的 JSON 字符串递归解析。</span>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="result-header">
+                    <h3 style="margin:0;">深度解析结果（自动解析可反序列化字段）</h3>
+                    <button class="small" data-copy-target="deepParsed">复制</button>
+                </div>
+                <pre id="deepParsed"></pre>
+            </div>
+
+            <div class="section">
+                <div class="row">
+                    <div class="col">
+                        <div class="result-header">
+                            <h3 style="margin:0;">提取的 content 文本</h3>
+                            <button class="small" data-copy-target="contentRaw">复制</button>
+                        </div>
+                        <pre id="contentRaw"></pre>
+                    </div>
+                    <div class="col">
+                        <div class="result-header">
+                            <h3 style="margin:0;">content JSON（一级解析）</h3>
+                            <button class="small" data-copy-target="contentParsed">复制</button>
+                        </div>
+                        <pre id="contentParsed"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 简单工具函数
+        function tryParseJSON(str) {
+            try {
+                return { ok: true, value: JSON.parse(str) };
+            } catch (e) {
+                return { ok: false, error: e };
+            }
+        }
+
+        function pretty(obj) {
+            if (typeof obj === 'string') return obj;
+            try { return JSON.stringify(obj, null, 2); } catch (e) { return String(obj); }
+        }
+
+        function copyText(text) {
+            return navigator.clipboard.writeText(text);
+        }
+
+        // 从整行日志中提取 content 字段字符串
+        function extractContentString(input) {
+            // 先尝试整体 JSON 解析
+            const whole = tryParseJSON(input);
+            if (whole.ok && whole.value && Object.prototype.hasOwnProperty.call(whole.value, 'content')) {
+                const c = whole.value.content;
+                if (typeof c === 'string') return { ok: true, contentStr: c };
+                // content 不是字符串时，序列化为字符串返回
+                return { ok: true, contentStr: JSON.stringify(c) };
+            }
+
+            // 退化处理：尝试截取最外层 JSON 再解析
+            const first = input.indexOf('{');
+            const last = input.lastIndexOf('}');
+            if (first !== -1 && last !== -1 && last > first) {
+                const sub = input.slice(first, last + 1);
+                const attempt = tryParseJSON(sub);
+                if (attempt.ok && attempt.value && Object.prototype.hasOwnProperty.call(attempt.value, 'content')) {
+                    const c = attempt.value.content;
+                    if (typeof c === 'string') return { ok: true, contentStr: c };
+                    return { ok: true, contentStr: JSON.stringify(c) };
+                }
+            }
+
+            return { ok: false, error: '未找到可解析的 content 字段' };
+        }
+
+        // 递归解析对象中“可反序列化”的 JSON 字符串
+        function deepParseJSONStrings(obj, depth = 0, maxDepth = 5) {
+            if (depth > maxDepth) return obj;
+            if (obj === null) return obj;
+
+            if (Array.isArray(obj)) {
+                return obj.map(v => deepParseJSONStrings(v, depth + 1, maxDepth));
+            }
+
+            if (typeof obj === 'object') {
+                const out = {};
+                for (const [k, v] of Object.entries(obj)) {
+                    out[k] = deepParseJSONStrings(v, depth + 1, maxDepth);
+                }
+                return out;
+            }
+
+            if (typeof obj === 'string') {
+                const trimmed = obj.trim();
+                // 粗略判断是 JSON 文本
+                const looksJSON = (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+                                  (trimmed.startsWith('[') && trimmed.endsWith(']'));
+                if (!looksJSON) return obj;
+
+                const parsed = tryParseJSON(trimmed);
+                if (parsed.ok) {
+                    return deepParseJSONStrings(parsed.value, depth + 1, maxDepth);
+                }
+                return obj;
+            }
+
+            return obj;
+        }
+
+        function handleParse() {
+            const input = document.getElementById('logInput').value.trim();
+            const elRaw = document.getElementById('contentRaw');
+            const elParsed = document.getElementById('contentParsed');
+            const elDeep = document.getElementById('deepParsed');
+
+            elRaw.textContent = '';
+            elParsed.textContent = '';
+            elDeep.textContent = '';
+
+            if (!input) return;
+
+            const ext = extractContentString(input);
+            if (!ext.ok) {
+                elRaw.textContent = ext.error || '解析失败';
+                return;
+            }
+
+            // content 原始字符串
+            elRaw.textContent = ext.contentStr;
+
+            // 一级解析 content 为对象
+            const contentParsed = tryParseJSON(ext.contentStr);
+            if (contentParsed.ok) {
+                elParsed.textContent = pretty(contentParsed.value);
+
+                // 深度解析（对其中可反序列化的字符串继续解析）
+                const deep = deepParseJSONStrings(contentParsed.value);
+                elDeep.textContent = pretty(deep);
+            } else {
+                elParsed.textContent = 'content 不是有效 JSON';
+                elDeep.textContent = '无法深度解析：content 不是有效 JSON';
+            }
+        }
+
+        // 操作绑定
+        document.getElementById('btnParse').addEventListener('click', handleParse);
+
+        // 粘贴后自动解析（加一点点防抖）
+        let timer;
+        document.getElementById('logInput').addEventListener('input', () => {
+            clearTimeout(timer);
+            timer = setTimeout(handleParse, 300);
+        });
+
+        // 复制按钮
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-copy-target]');
+            if (!btn) return;
+            const id = btn.getAttribute('data-copy-target');
+            const el = document.getElementById(id);
+            if (!el) return;
+            copyText(el.textContent || '').catch(() => {});
+        });
+    </script>
+</body>
+
+</html>
