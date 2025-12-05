@@ -516,6 +516,28 @@
             return result;
         }
 
+        // 将 Go 基本类型映射到 Protobuf 标量类型
+        function goTypeToProtoScalar(goType) {
+            switch (goType) {
+                case 'int':
+                case 'int64':
+                case 'int32':
+                    return 'int64';
+                case 'float64':
+                case 'double':
+                    return 'double';
+                case 'float32':
+                case 'float':
+                    return 'float';
+                case 'bool':
+                    return 'bool';
+                case 'string':
+                    return 'string';
+                default:
+                    return goType; // 自定义类型保持原样
+            }
+        }
+
         // 生成 JSON
         function generateJSON(data) {
             const obj = {};
@@ -551,6 +573,19 @@
             let index = 1;
             for (const field of data.fields) {
                 let protoType = field.type;
+
+                // 处理 map 类型: map[key]value => map<key, value>
+                const mapMatch = protoType.match(/^map\[(\w+)\](.+)$/);
+                if (mapMatch) {
+                    const keyType = goTypeToProtoScalar(mapMatch[1]) || 'string';
+                    const valueType = goTypeToProtoScalar(mapMatch[2].trim()) || 'string';
+                    // Protobuf 只允许标量/字符串作为 key，这里默认非字符串 key 也回退为 string
+                    const safeKeyType = keyType === 'string' ? 'string' : 'string';
+                    const mapLine = `\tmap<${safeKeyType}, ${valueType}> ${field.jsonName} = ${index};\n`;
+                    result += mapLine;
+                    index++;
+                    continue;
+                }
                 
                 // 判断是否为基本类型
                 const basicTypes = ['int64', 'int32', 'float64', 'double', 'bool', 'string'];
