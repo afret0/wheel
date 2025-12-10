@@ -47,7 +47,7 @@ func (m *MongoDB) newClient(ctx context.Context, opt *options.ClientOptions) *mo
 		//m.logger.Panicf("MongoDB connection failed, Err: %s, uri: %s", err.Error(), opt.GetURI())
 		panic(fmt.Sprintf("MongoDB connection failed, Err: %s, uri: %s", err.Error(), opt.GetURI()))
 	} else {
-		m.logger.Infof("MongoDB connection succeed...")
+		m.logger.Infof("MongoDB connection success...")
 	}
 	return client
 }
@@ -58,7 +58,7 @@ func (m *MongoDB) Ping(ctx context.Context) {
 		//m.logger.Panicf("mongoDB ping Err: %s", err.Error())
 		panic(err)
 	} else {
-		m.logger.Info("mongoDB ping succeed...")
+		m.logger.Info("mongoDB ping success...")
 	}
 }
 
@@ -97,7 +97,7 @@ func (m *MongoDB) Disconnect() {
 		//m.logger.Panicf("mongoDB disconnect Err: %s", err.Error())
 		panic(fmt.Sprintf("mongoDB disconnect Err: %s", err.Error()))
 	} else {
-		m.logger.Info("mongoDB disconnect succeed...")
+		m.logger.Info("mongoDB disconnect success...")
 	}
 }
 

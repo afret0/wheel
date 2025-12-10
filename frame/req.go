@@ -4,11 +4,9 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/afret0/wheel/constant"
 	"github.com/gin-gonic/gin"
 )
-
-const Hayo = "hayo"
-const Keke = "keke"
 
 func Request(ctx context.Context) *http.Request {
 	req := ctx.Value(gin.ContextRequestKey)
@@ -47,19 +45,18 @@ func App(ctx context.Context) string {
 
 	app := header.Get("app")
 	if app == "" {
-		app = Hayo
+		app = constant.Keke
 	}
 
 	return app
 }
 
 func IsHayo(ctx context.Context) bool {
-
 	app := App(ctx)
-	return app == Hayo
+	return app == constant.Hayo
 }
 
 func IsKeke(ctx context.Context) bool {
 	app := App(ctx)
-	return app == Keke
+	return app == constant.Keke
 }

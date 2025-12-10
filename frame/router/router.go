@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/afret0/wheel/constant"
 	"github.com/afret0/wheel/tool"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc/status"
@@ -108,7 +109,7 @@ func (r *Router) registerRouter(e *gin.Engine) {
 				sr := new(serviceResp)
 				sr.Data = resp
 				sr.Code = 1
-				sr.Msg = "succeed"
+				sr.Msg = constant.Suc
 				if err != nil {
 					sr.Code = 0
 					sr.Msg = err.Error()
