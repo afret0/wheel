@@ -3,19 +3,20 @@ package loggerMiddleware
 import (
 	"bytes"
 	"fmt"
-	"github.com/afret0/wheel/tool"
-	"github.com/afret0/wheel/tool/recoverTool"
-	"github.com/getsentry/sentry-go"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"io"
 	"net/http"
 	"runtime/debug"
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/afret0/wheel/tool"
+	"github.com/afret0/wheel/tool/recoverTool"
+	"github.com/getsentry/sentry-go"
 	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
@@ -71,6 +72,11 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 			opId = strings.ReplaceAll(uuid.New().String(), "-", "")
 		}
 
+		app := c.GetHeader("app")
+		if app == "" {
+			app = "keke"
+		}
+
 		c.Set("opId", opId)
 		c.Request.Header.Set("opId", opId)
 
@@ -92,6 +98,7 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 			"opId":     opId,
 			"clientIP": clientIP,
 			"reqTime":  startT.Format("2006-01-02 15:04:05"),
+			"app":      app,
 		})
 
 		for _, uri := range opt.WhiteList {
