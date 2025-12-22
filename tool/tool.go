@@ -13,12 +13,13 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/afret0/wheel/frame"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc/status"
+
+	"github.com/afret0/wheel/frame"
 )
 
 func init() {
@@ -175,9 +176,13 @@ func Debug(keyChains ...string) bool {
 		key = keyChains[0]
 	}
 
-	debug := os.Getenv(key)
+	return EnvEnabled(key)
+}
 
-	switch debug {
+func EnvEnabled(key string) bool {
+	tk := os.Getenv(key)
+
+	switch tk {
 	case "true", "TRUE", "1", "yes", "YES":
 		return true
 	}
