@@ -8,6 +8,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -40,20 +42,34 @@ func GrpcCtx(ctx context.Context) context.Context {
 
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		md = metadata.Pairs("opid", opId)
-		ctx = metadata.NewOutgoingContext(ctx, md)
-	} else {
-		if val, exists := md["opid"]; exists && len(val) > 0 {
-			opId = val[0]
-		} else {
-			md["opid"] = []string{opId}
-			//newMd := metadata.Join(md, metadata.Pairs("opid", opId))
-			//ctx = metadata.NewOutgoingContext(ctx, newMd)
-			ctx = metadata.NewOutgoingContext(ctx, md)
-		}
+		md = metadata.Pairs()
 	}
 
-	return ctx
+	md["opid"] = []string{opId}
+	carrier := propagation.MapCarrier{}
+	otel.GetTextMapPropagator().Inject(ctx, carrier)
+	for k, v := range carrier {
+		md[strings.ToLower(k)] = []string{v}
+	}
+
+	return metadata.NewOutgoingContext(ctx, md)
+
+	// md, ok := metadata.FromIncomingContext(ctx)
+	// if !ok {
+	// 	md = metadata.Pairs("opid", opId)
+	// 	ctx = metadata.NewOutgoingContext(ctx, md)
+	// } else {
+	// 	if val, exists := md["opid"]; exists && len(val) > 0 {
+	// 		opId = val[0]
+	// 	} else {
+	// 		md["opid"] = []string{opId}
+	// 		//newMd := metadata.Join(md, metadata.Pairs("opid", opId))
+	// 		//ctx = metadata.NewOutgoingContext(ctx, newMd)
+	// 		ctx = metadata.NewOutgoingContext(ctx, md)
+	// 	}
+	// }
+
+	// return ctx
 }
 
 func OpIdWithoutDefault(ctx context.Context) string {

@@ -9,6 +9,9 @@ import (
 	"net/http"
 	"strings"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+
 	"github.com/afret0/wheel/log"
 	"github.com/afret0/wheel/tool"
 )
@@ -54,10 +57,17 @@ func Post(ctx context.Context, ret interface{}, url string, body interface{}, he
 	opId := tool.ConvertOpId(tool.OpId(ctx))
 	hd := make(http.Header)
 	hd.Add("Content-Type", "application/json")
-	//opId := strings.ReplaceAll(uuid.New().String(), "-", "")
 	hd.Add("opId", opId)
+
+	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(hd))
+
 	if len(headers) != 0 {
-		hd = headers[0]
+		// hd = headers[0]
+		for k, v := range headers[0] {
+			if k != "opId" && k != "Traceparent" && k != "Tracestate" {
+				hd[k] = v
+			}
+		}
 	}
 
 	payloadJson, err := json.Marshal(body)
@@ -113,8 +123,15 @@ func Get(ctx context.Context, ret interface{}, url string, headers ...http.Heade
 	opId := tool.ConvertOpId(tool.OpId(ctx))
 	hd := make(http.Header)
 	hd.Add("opId", opId)
+	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(hd))
+
 	if len(headers) != 0 {
-		hd = headers[0]
+		// hd = headers[0]
+		for k, v := range headers[0] {
+			if k != "opId" && k != "Traceparent" && k != "Tracestate" {
+				hd[k] = v
+			}
+		}
 	}
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
