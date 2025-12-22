@@ -2,11 +2,13 @@ package grpcRegister
 
 import (
 	"fmt"
-	"github.com/afret0/wheel/frame/router"
-	"github.com/gin-gonic/gin"
-	"google.golang.org/protobuf/proto"
 	"reflect"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	"google.golang.org/protobuf/proto"
+
+	"github.com/afret0/wheel/frame/router"
 )
 
 // GrpcController 接口用于标识实现了 gRPC 服务的 Controller
@@ -130,7 +132,7 @@ func (g *GrpcRegister) createHTTPHandler(ctrl reflect.Value, method reflect.Meth
 		// 调用 controller 方法
 		results := method.Func.Call([]reflect.Value{
 			ctrl,
-			reflect.ValueOf(c),
+			reflect.ValueOf(c.Request.Context()),
 			reqValue,
 		})
 
