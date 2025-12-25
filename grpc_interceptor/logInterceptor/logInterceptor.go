@@ -4,19 +4,23 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/getsentry/sentry-go"
 	"runtime/debug"
 	"strings"
 	"time"
 
-	"github.com/afret0/wheel/log"
+	"github.com/getsentry/sentry-go"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
+
+	"github.com/afret0/wheel/log"
+	"github.com/afret0/wheel/tool"
 )
 
 type Option struct {
@@ -58,6 +62,13 @@ func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 			ctx = metadata.NewOutgoingContext(ctx, md)
 		}
 		ctx = context.WithValue(ctx, "opId", opId)
+
+		if tool.EnvEnabled("TRACE") {
+			span := trace.SpanFromContext(ctx)
+			if span != nil && span.IsRecording() {
+				span.SetAttributes(attribute.String("opId", opId))
+			}
+		}
 
 		clientIP := ""
 		if p, ok := peer.FromContext(ctx); ok {
