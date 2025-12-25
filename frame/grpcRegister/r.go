@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/afret0/wheel/frame/router"
@@ -129,10 +130,14 @@ func (g *GrpcRegister) createHTTPHandler(ctrl reflect.Value, method reflect.Meth
 			return nil, err
 		}
 
+		tracer := otel.Tracer("gin")
+		ctx, span := tracer.Start(c, method.Name)
+		defer span.End()
+
 		// 调用 controller 方法，传递 gin.Context
 		results := method.Func.Call([]reflect.Value{
 			ctrl,
-			reflect.ValueOf(c.Request.Context()),
+			reflect.ValueOf(ctx),
 			reqValue,
 		})
 
