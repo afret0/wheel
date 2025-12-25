@@ -1,6 +1,7 @@
 package grpcRegister
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
@@ -131,17 +132,20 @@ func (g *GrpcRegister) createHTTPHandler(ctrl reflect.Value, method reflect.Meth
 			return nil, err
 		}
 
+		var ctx context.Context
+		var span otel.Span
 		if tool.EnvEnabled("TRACE") {
 			tracer := otel.Tracer("gin")
-			ctx, span := tracer.Start(c, method.Name)
-			c = ctx
+			ctx, span = tracer.Start(c, method.Name)
 			defer span.End()
+		} else {
+			ctx = c
 		}
 
 		// 调用 controller 方法，传递 gin.Context
 		results := method.Func.Call([]reflect.Value{
 			ctrl,
-			reflect.ValueOf(c),
+			reflect.ValueOf(ctx),
 			reqValue,
 		})
 
