@@ -6,9 +6,11 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/afret0/wheel/frame/router"
+	"github.com/afret0/wheel/tool"
 )
 
 // GrpcController 接口用于标识实现了 gRPC 服务的 Controller
@@ -129,10 +131,17 @@ func (g *GrpcRegister) createHTTPHandler(ctrl reflect.Value, method reflect.Meth
 			return nil, err
 		}
 
+		if tool.EnvEnabled("TRACE") {
+			tracer := otel.Tracer("gin")
+			ctx, span := tracer.Start(c, method.Name)
+			c = ctx
+			defer span.End()
+		}
+
 		// 调用 controller 方法，传递 gin.Context
 		results := method.Func.Call([]reflect.Value{
 			ctrl,
-			reflect.ValueOf(ctx),
+			reflect.ValueOf(c),
 			reqValue,
 		})
 
