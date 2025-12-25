@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/proto"
 
@@ -137,7 +138,12 @@ func (g *GrpcRegister) createHTTPHandler(ctrl reflect.Value, method reflect.Meth
 		var span trace.Span
 		if tool.EnvEnabled("TRACE") {
 			tracer := otel.Tracer("gin")
-			ctx, span = tracer.Start(c, method.Name)
+			ctx, span = tracer.Start(c, fmt.Sprintf("%s", c.Request.URL))
+
+			opId := tool.OpId(ctx)
+			span.SetAttributes(
+				attribute.String("opId", opId),
+			)
 			defer span.End()
 		} else {
 			ctx = c
