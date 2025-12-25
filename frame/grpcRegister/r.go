@@ -132,7 +132,7 @@ func (g *GrpcRegister) createHTTPHandler(ctrl reflect.Value, method reflect.Meth
 		// 调用 controller 方法
 		results := method.Func.Call([]reflect.Value{
 			ctrl,
-			reflect.ValueOf(c.Request.Context()),
+			reflect.ValueOf(c),
 			reqValue,
 		})
 
