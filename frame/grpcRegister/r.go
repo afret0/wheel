@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/afret0/wheel/frame/router"
@@ -129,7 +130,13 @@ func (g *GrpcRegister) createHTTPHandler(ctrl reflect.Value, method reflect.Meth
 			return nil, err
 		}
 
-		// 调用 controller 方法
+		ctx := c.Request.Context()
+		span := trace.SpanFromContext(ctx)
+		spanCtx := span.SpanContext()
+		c.Set("trace-id", spanCtx.TraceID().String())
+		c.Set("span-id", spanCtx.SpanID().String())
+
+		// 调用 controller 方法，传递 gin.Context
 		results := method.Func.Call([]reflect.Value{
 			ctrl,
 			reflect.ValueOf(c),
