@@ -134,7 +134,7 @@ func (g *GrpcRegister) createHTTPHandler(ctrl reflect.Value, method reflect.Meth
 			return nil, err
 		}
 
-		var ctx context.Context
+		var ctx context.Context = c
 		var span trace.Span
 		if tool.EnvEnabled("TRACE") {
 			tracer := otel.Tracer("gin")
@@ -145,8 +145,6 @@ func (g *GrpcRegister) createHTTPHandler(ctrl reflect.Value, method reflect.Meth
 				attribute.String("opId", opId),
 			)
 			defer span.End()
-		} else {
-			ctx = c
 		}
 
 		// 调用 controller 方法，传递 gin.Context
