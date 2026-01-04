@@ -11,6 +11,11 @@ func Week() string {
 	return fmt.Sprintf("%d%02d", year, week)
 }
 
+func WeekByTime(t time.Time) string {
+	year, week := t.ISOWeek()
+	return fmt.Sprintf("%d%02d", year, week)
+}
+
 func LastWeek() string {
 	// 获取7天前的时间
 	lastWeek := LocalNow().AddDate(0, 0, -7)
