@@ -2,23 +2,16 @@ package safePointTool
 
 import (
 	"math"
-	"math/bits"
 )
 
 func SafeAddPoints(oldPoints, delta int64) (int64, bool) {
-	lo, carry := bits.Add64(uint64(oldPoints), uint64(delta), 0)
-
-	// 如果 carry != 0，说明溢出
-	if carry != 0 {
+	if delta > 0 && oldPoints > math.MaxInt64-delta {
 		return 0, false
 	}
-
-	// lo 是否能放进 int64？
-	if lo > math.MaxInt64 {
+	if delta < 0 && oldPoints < math.MinInt64-delta {
 		return 0, false
 	}
-
-	return int64(lo), true
+	return oldPoints + delta, true
 }
 
 func SafeCalcPoints(giftCount, giftValue int64) (int64, bool) {
@@ -26,10 +19,10 @@ func SafeCalcPoints(giftCount, giftValue int64) (int64, bool) {
 		return 0, false
 	}
 
-	lo, hi := bits.Mul64(uint64(giftCount), uint64(giftValue))
-	if hi != 0 || lo > math.MaxInt64 {
+	// giftCount * giftValue 是否会溢出？
+	if giftCount != 0 && giftValue > math.MaxInt64/giftCount {
 		return 0, false
 	}
 
-	return int64(lo), true
+	return giftCount * giftValue, true
 }
