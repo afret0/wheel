@@ -189,3 +189,23 @@ func EnvEnabled(key string) bool {
 
 	return false
 }
+
+func GenderFromID(id string) (int, error) {
+	if len(id) == 18 {
+		sexCode := id[16] - '0'
+		if sexCode%2 == 0 {
+			return 2, nil
+		}
+		return 1, nil
+	}
+
+	if len(id) == 15 {
+		sexCode := id[14] - '0'
+		if sexCode%2 == 0 {
+			return 2, nil
+		}
+		return 1, nil
+	}
+
+	return 0, fmt.Errorf("id err")
+}
