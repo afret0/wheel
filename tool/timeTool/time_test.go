@@ -19,3 +19,22 @@ func Test_time(t *testing.T) {
 
 	fmt.Printf("midnight: %s\n", MidnightTody())
 }
+
+func Test_ParseMillisecond(t *testing.T) {
+
+	tm := ParseMillisecond(1770103802548)
+
+	t.Logf("ParseMillisecond: %s", FormatTime(tm))
+}
+
+func Test_ParseTimeStr(t *testing.T) {
+	tmStr := "2026-02-03 15:30:02"
+
+	tm, err := ParseTimeStr(tmStr)
+	if err != nil {
+		t.Errorf("ParseTimeStr error: %v", err)
+		return
+	}
+
+	t.Logf("ParseTimeStr: %s", tm)
+}
