@@ -89,11 +89,17 @@ func MidnightToday() time.Time {
 	//location := time.FixedZone("UTC+8", 8*60*60) // 东八区，偏移量为8小时(8*60*60秒)
 
 	now := LocalNow()
-	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, Location())
+	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, TZBeijing())
 }
 
+// Deprecated: use TZBeijing instead
 func Location() *time.Location {
 	//return Location()
+	location := time.FixedZone("UTC+8", 8*60*60)
+	return location
+}
+
+func TZBeijing() *time.Location {
 	location := time.FixedZone("UTC+8", 8*60*60)
 	return location
 }
@@ -103,17 +109,17 @@ func LocalNow() time.Time {
 }
 
 func Now() time.Time {
-	return time.Now().In(Location())
+	return time.Now().In(TZBeijing())
 }
 
 func ParseMillisecond(ts int64) time.Time {
 	t := time.Unix(0, ts*int64(time.Millisecond))
-	return t.In(Location())
+	return t.In(TZBeijing())
 }
 
 func ParseSecond(ts int64) time.Time {
 	t := time.Unix(ts, 0)
-	return t.In(Location())
+	return t.In(TZBeijing())
 }
 
 func FormatTime(t time.Time) string {
@@ -121,7 +127,7 @@ func FormatTime(t time.Time) string {
 }
 
 func ParseTimeStr(timeStr string) (time.Time, error) {
-	t, err := time.ParseInLocation("2006-01-02 15:04:05", timeStr, Location())
+	t, err := time.ParseInLocation("2006-01-02 15:04:05", timeStr, TZBeijing())
 	if err != nil {
 		return time.Time{}, err
 	}

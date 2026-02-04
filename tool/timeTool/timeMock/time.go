@@ -63,7 +63,7 @@ func SetTime(ctx context.Context, ts int64) error {
 }
 
 func now() time.Time {
-	return time.Now().In(timeTool.Location())
+	return time.Now().In(timeTool.TZBeijing())
 }
 
 func Now(ctx context.Context) time.Time {
@@ -90,5 +90,5 @@ func Now(ctx context.Context) time.Time {
 		return now()
 	}
 
-	return time.UnixMilli(ts).In(timeTool.Location())
+	return time.UnixMilli(ts).In(timeTool.TZBeijing())
 }

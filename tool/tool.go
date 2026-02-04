@@ -10,7 +10,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"time"
 	"unicode"
 
 	"github.com/gin-gonic/gin"
@@ -49,10 +48,6 @@ func IsDevEnv() bool {
 
 func IsTestEnv() bool {
 	return GetEnv() == "test"
-}
-
-func Milliseconds() int64 {
-	return time.Now().UnixMilli()
 }
 
 func MergeConfig(config1 *viper.Viper, config2 *viper.Viper) *viper.Viper {
