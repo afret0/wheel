@@ -385,11 +385,12 @@
         },
         "pip": {
             "hashes": [
-                "sha256:a775837439bf5da2c1a0c2fa43d5744854497c689ddbd9344cf3ea6d00598540",
-                "sha256:bdae551038c0ce6a83030b4aedef27fc95f0daa683593fea22fa05e55ed8e317"
+                "sha256:3ce220a0a17915972fbf1ab451baae1521c4539e778b28127efa79b974aff0fa",
+                "sha256:98436feffb9e31bc9339cf369fd55d3331b1580b6a6f1173bacacddcf9c34754"
             ],
-            "markers": "python_version >= '3.8'",
-            "version": "==24.1"
+            "index": "pypi",
+            "markers": "python_version >= '3.9'",
+            "version": "==26.0"
         },
         "platformdirs": {
             "hashes": [
