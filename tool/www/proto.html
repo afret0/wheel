@@ -340,7 +340,11 @@
                     JSON.parse(trimmed);
                     return 'json';
                 } catch (e) {
-                    // 不是有效的 JSON
+                    // 如果 JSON 解析失败，但格式看起来像 JSON（有效的 JSON 结构），
+                    // 也返回 json - 让 parseJSON 函数处理详细的解析错误
+                    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+                        return 'json';
+                    }
                 }
             }
             
@@ -377,32 +381,46 @@
         // 解析 Golang Struct
         function parseGolangStruct(input) {
             const fields = [];
-            const structMatch = input.match(/type\s+(\w+)\s+struct\s*{([^}]*)}/s);
-            if (!structMatch) throw new Error('无法解析 Golang Struct 格式');
+            const nestedStructs = {};
             
-            const structName = structMatch[1];
-            const content = structMatch[2];
-            const lines = content.split('\n').map(l => l.trim()).filter(l => l);
-
-            for (const line of lines) {
-                // 匹配字段，支持指针类型 *Type 和数组类型 []*Type
-                const match = line.match(/(\w+)\s+([\[\]\*\w]+)(\s+`json:"([^"]+)"`)?/);
-                if (match) {
-                    const [, name, type, , jsonTag] = match;
-                    // 跳过 json:"-" 标记的字段
-                    if (jsonTag === '-') {
-                        continue;
+            // 首先提取所有的 type ... struct 定义
+            const typeRegex = /type\s+(\w+)\s+struct\s*{([^}]*)}/gs;
+            let match;
+            
+            while ((match = typeRegex.exec(input)) !== null) {
+                const structName = match[1];
+                const content = match[2];
+                const lines = content.split('\n').map(l => l.trim()).filter(l => l);
+                
+                const structFields = [];
+                for (const line of lines) {
+                    // 匹配字段，支持指针类型 *Type 和数组类型 []*Type
+                    const fieldMatch = line.match(/(\w+)\s+([\[\]\*\w]+)(\s+`json:"([^"]+)"`)?/);
+                    if (fieldMatch) {
+                        const [, name, type, , jsonTag] = fieldMatch;
+                        // 跳过 json:"-" 标记的字段
+                        if (jsonTag === '-') {
+                            continue;
+                        }
+                        structFields.push({
+                            name,
+                            type: normalizeType(type, 'golang'),
+                            jsonName: jsonTag || toCamelCase(name),
+                            originalType: type  // 保留原始类型用于自定义类型
+                        });
                     }
-                    fields.push({
-                        name,
-                        type: normalizeType(type, 'golang'),
-                        jsonName: jsonTag || toCamelCase(name),
-                        originalType: type  // 保留原始类型用于自定义类型
-                    });
+                }
+                
+                if (structName !== 'Data') {
+                    // 非主结构体，存入 nestedStructs
+                    nestedStructs[structName] = { fields: structFields };
+                } else {
+                    // 主结构体的字段
+                    fields.push(...structFields);
                 }
             }
-
-            return { name: structName, fields };
+            
+            return { name: 'Data', fields, nestedStructs: Object.keys(nestedStructs).length > 0 ? nestedStructs : undefined };
         }
 
         // 解析 JSON
@@ -410,18 +428,40 @@
             try {
                 const obj = JSON.parse(input);
                 const fields = [];
+                const nestedStructs = {}; // 用来存储嵌套的结构体定义
                 
                 for (const [key, value] of Object.entries(obj)) {
                     // 将小驼峰转为大驼峰作为字段名
                     const fieldName = key.replace(/^(.)/, c => c.toUpperCase());
-                    fields.push({
-                        name: fieldName,
-                        type: inferTypeFromValue(value),
-                        jsonName: key
-                    });
+                    
+                    // 特殊处理 notifyData 字段
+                    if (key === 'notifyData' && typeof value === 'object' && !Array.isArray(value)) {
+                        // 创建 NotifyData 结构体定义
+                        const notifyDataFields = [];
+                        for (const [notifyKey, notifyValue] of Object.entries(value)) {
+                            const notifyFieldName = notifyKey.replace(/^(.)/, c => c.toUpperCase());
+                            notifyDataFields.push({
+                                name: notifyFieldName,
+                                type: inferTypeFromValue(notifyValue),
+                                jsonName: notifyKey
+                            });
+                        }
+                        nestedStructs['NotifyData'] = { fields: notifyDataFields };
+                        fields.push({
+                            name: fieldName,
+                            type: '*NotifyData',
+                            jsonName: key
+                        });
+                    } else {
+                        fields.push({
+                            name: fieldName,
+                            type: inferTypeFromValue(value),
+                            jsonName: key
+                        });
+                    }
                 }
 
-                return { name: 'Data', fields };
+                return { name: 'Data', fields, nestedStructs };
             } catch (e) {
                 throw new Error('无法解析 JSON 格式: ' + e.message);
             }
@@ -430,28 +470,38 @@
         // 解析 Protobuf
         function parseProtobuf(input) {
             const fields = [];
-            const messageMatch = input.match(/message\s+(\w+)\s*{([^}]*)}/s);
-            if (!messageMatch) throw new Error('无法解析 Protobuf 格式');
+            const nestedStructs = {};
+            const messageRegex = /message\s+(\w+)\s*{([^}]*)}/g;
+            let match;
             
-            const messageName = messageMatch[1];
-            const content = messageMatch[2];
-            const lines = content.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('//'));
-
-            for (const line of lines) {
-                const match = line.match(/(repeated\s+)?(\w+)\s+(\w+)\s*=\s*\d+/);
-                if (match) {
-                    const [, repeated, type, name] = match;
-                    // 将小驼峰转为大驼峰作为字段名
-                    const fieldName = name.replace(/^(.)/, c => c.toUpperCase()).replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-                    fields.push({
-                        name: fieldName,
-                        type: normalizeType((repeated ? '[]' : '') + type, 'proto'),
-                        jsonName: toCamelCase(name)
-                    });
+            while ((match = messageRegex.exec(input)) !== null) {
+                const messageName = match[1];
+                const content = match[2];
+                const lines = content.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('//'));
+                
+                const messageFields = [];
+                for (const line of lines) {
+                    const fieldMatch = line.match(/(repeated\s+)?(\w+)\s+(\w+)\s*=\s*\d+/);
+                    if (fieldMatch) {
+                        const [, repeated, type, name] = fieldMatch;
+                        // 将小驼峰转为大驼峰作为字段名
+                        const fieldName = name.replace(/^(.)/, c => c.toUpperCase()).replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+                        messageFields.push({
+                            name: fieldName,
+                            type: normalizeType((repeated ? '[]' : '') + type, 'proto'),
+                            jsonName: toCamelCase(name)
+                        });
+                    }
+                }
+                
+                if (messageName !== 'Data') {
+                    nestedStructs[messageName] = { fields: messageFields };
+                } else {
+                    fields.push(...messageFields);
                 }
             }
 
-            return { name: messageName, fields };
+            return { name: 'Data', fields, nestedStructs: Object.keys(nestedStructs).length > 0 ? nestedStructs : undefined };
         }
 
         // 类型推断
@@ -507,7 +557,22 @@
 
         // 生成 Golang Struct
         function generateGolang(data) {
-            let result = `type ${data.name} struct {\n`;
+            let result = '';
+            
+            // 先生成嵌套的结构体
+            if (data.nestedStructs) {
+                for (const [structName, structData] of Object.entries(data.nestedStructs)) {
+                    result += `type ${structName} struct {\n`;
+                    for (const field of structData.fields) {
+                        const goType = field.type.replace(/\bint\b/g, 'int64').replace(/\bint32\b/g, 'int64');
+                        result += `\t${field.name} ${goType} \`json:"${field.jsonName}"\`\n`;
+                    }
+                    result += '}\n\n';
+                }
+            }
+            
+            // 生成主结构体
+            result += `type ${data.name} struct {\n`;
             for (const field of data.fields) {
                 const goType = field.type.replace(/\bint\b/g, 'int64').replace(/\bint32\b/g, 'int64');
                 result += `\t${field.name} ${goType} \`json:"${field.jsonName}"\`\n`;
@@ -558,6 +623,31 @@
                     value = {};
                 } else if (type === 'string') {
                     value = "";
+                } else if (type.startsWith('*')) {
+                    // 指针类型（自定义结构体）
+                    const structName = type.substring(1);
+                    if (data.nestedStructs && data.nestedStructs[structName]) {
+                        // 生成嵌套结构体的 JSON
+                        value = {};
+                        for (const nestedField of data.nestedStructs[structName].fields) {
+                            let nestedValue;
+                            const nestedType = nestedField.type;
+                            if (nestedType.includes('int64') || nestedType.includes('int')) {
+                                nestedValue = 0;
+                            } else if (nestedType.includes('float')) {
+                                nestedValue = 0.0;
+                            } else if (nestedType === 'bool') {
+                                nestedValue = false;
+                            } else if (nestedType.startsWith('[]')) {
+                                nestedValue = [];
+                            } else {
+                                nestedValue = "";
+                            }
+                            value[nestedField.jsonName] = nestedValue;
+                        }
+                    } else {
+                        value = null;
+                    }
                 } else {
                     // 自定义类型（如 MikeUserVO）设为 null 或 {}
                     value = null;
@@ -573,6 +663,11 @@
             let index = 1;
             for (const field of data.fields) {
                 let protoType = field.type;
+
+                // 处理指针类型（*NotifyData）
+                if (protoType.startsWith('*')) {
+                    protoType = protoType.substring(1);
+                }
 
                 // 处理 map 类型: map[key]value => map<key, value>
                 const mapMatch = protoType.match(/^map\[(\w+)\](.+)$/);
@@ -609,7 +704,7 @@
                         .replace(/bool/g, 'bool')
                         .replace(/string/g, 'string');
                 } else {
-                    // 自定义类型保持原样（如 MikeUserVO）
+                    // 自定义类型保持原样（如 MikeUserVO, NotifyData）
                     baseType = baseType;
                 }
                 
