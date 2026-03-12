@@ -28,6 +28,10 @@ const DirectionForward = "forward"
 const DirectionBackward = "backward"
 
 func (p *PageTag) Direction() string {
+	if p == nil {
+		return DirectionBackward
+	}
+
 	if p.ForwardPageTag == "" {
 		return DirectionBackward
 	}
