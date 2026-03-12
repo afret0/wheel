@@ -13,27 +13,29 @@ type BaseResponse struct {
 // 	Count      int64 `json:"count"`
 // }
 
-type PageTag struct {
+// type PageTag struct {
+// 	PageTag        string `json:"pageTag"`
+// 	ForwardPageTag string `json:"forwardPageTag"`
+// }
+
+type Page struct {
+	// PageTag    *PageTag `json:"pageTag"`
+	Count          int64  `json:"count"`
+	IsLastPage     bool   `json:"isLastPage"`
 	PageTag        string `json:"pageTag"`
 	ForwardPageTag string `json:"forwardPageTag"`
 }
 
-type PageTagResp struct {
-	PageTag    *PageTag `json:"pageTag"`
-	Count      int64    `json:"count"`
-	IsLastPage bool     `json:"isLastPage"`
-}
+const DirectionForward = -1
+const DirectionBackward = 1
 
-const DirectionForward = "forward"
-const DirectionBackward = "backward"
-
-func (p *PageTag) Direction() string {
+func (p *Page) Direction() (int, string) {
 	if p == nil {
-		return DirectionBackward
+		return DirectionBackward, ""
 	}
 
-	if p.ForwardPageTag == "" {
-		return DirectionBackward
+	if p.ForwardPageTag != "" {
+		return DirectionBackward, p.ForwardPageTag
 	}
-	return DirectionForward
+	return DirectionForward, p.PageTag
 }
