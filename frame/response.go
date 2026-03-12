@@ -19,7 +19,6 @@ type BaseResponse struct {
 // }
 
 type Page struct {
-	// PageTag    *PageTag `json:"pageTag"`
 	Count          int64  `json:"count"`
 	IsLastPage     bool   `json:"isLastPage"`
 	PageTag        string `json:"pageTag"`
@@ -35,7 +34,7 @@ func (p *Page) Direction() (int, string) {
 	}
 
 	if p.ForwardPageTag != "" {
-		return DirectionBackward, p.ForwardPageTag
+		return DirectionForward, p.ForwardPageTag
 	}
-	return DirectionForward, p.PageTag
+	return DirectionBackward, p.PageTag
 }
