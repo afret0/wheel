@@ -5,22 +5,24 @@ type BaseResponse struct {
 	Message string `json:"message"`
 }
 
+// type PageTag struct {
+// 	PageTag        string `json:"pageTag"`
+// 	ForwardPageTag string `json:"forwardPageTag"`
+// 	//IsForward      bool   `json:"isForward"`
+// 	IsLastPage bool  `json:"isLastPage"`
+// 	Count      int64 `json:"count"`
+// }
+
 type PageTag struct {
-	PageTag        string `json:"pageTag"`
-	ForwardPageTag string `json:"forwardPageTag"`
-	//IsForward      bool   `json:"isForward"`
-	IsLastPage bool  `json:"isLastPage"`
-	Count      int64 `json:"count"`
+	PageTag   string `json:"pageTag"`
+	Direction int64  `json:"direction"`
 }
 
-func (p *PageTag) Direction() int64 {
-	if p.PageTag == "" && p.ForwardPageTag == "" {
-		return -1
-	}
-
-	if p.PageTag != "" {
-		return -1
-	}
-
-	return 1
+type PageTagResp struct {
+	PageTag    *PageTag `json:"pageTag"`
+	Count      int64    `json:"count"`
+	IsLastPage bool     `json:"isLastPage"`
 }
+
+const DirectionForward = 1
+const DirectionBackward = -1
