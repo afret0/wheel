@@ -7,7 +7,7 @@ type BaseResponse struct {
 
 // type PageTag struct {
 // 	PageTag        string `json:"pageTag"`
-// 	ForwardPageTag string `json:"forwardPageTag"`
+// 	PrevPageTag string `json:"forwardPageTag"`
 // 	//IsForward      bool   `json:"isForward"`
 // 	IsLastPage bool  `json:"isLastPage"`
 // 	Count      int64 `json:"count"`
@@ -15,14 +15,14 @@ type BaseResponse struct {
 
 // type PageTag struct {
 // 	PageTag        string `json:"pageTag"`
-// 	ForwardPageTag string `json:"forwardPageTag"`
+// 	PrevPageTag string `json:"forwardPageTag"`
 // }
 
 type Page struct {
-	Count          int64  `json:"count"`
-	IsLastPage     bool   `json:"isLastPage"`
-	PageTag        string `json:"pageTag"`
-	ForwardPageTag string `json:"forwardPageTag"`
+	Count       int64  `json:"count"`
+	IsLastPage  bool   `json:"isLastPage"`
+	PageTag     string `json:"pageTag"`
+	PrevPageTag string `json:"prevPageTag"`
 }
 
 const DirectionForward = -1
@@ -33,8 +33,8 @@ func (p *Page) Direction() (int, string) {
 		return DirectionBackward, ""
 	}
 
-	if p.ForwardPageTag != "" {
-		return DirectionForward, p.ForwardPageTag
+	if p.PrevPageTag != "" {
+		return DirectionForward, p.PrevPageTag
 	}
 	return DirectionBackward, p.PageTag
 }

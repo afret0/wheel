@@ -2,15 +2,31 @@ package tool
 
 import (
 	"context"
-	"github.com/afret0/wheel/frame"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
+// Uid Deprecated  use frame.Uid instead
 func Uid(ctx context.Context) string {
-	header := frame.Header(ctx)
+
+	req := ctx.Value(gin.ContextRequestKey)
+	if req == nil {
+		return ""
+	}
+
+	req1, ok := req.(*http.Request)
+	if !ok {
+		return ""
+	}
+
+	header := req1.Header
+
+	//header := frame.Header(ctx)
 	uid := header.Get("_uid")
-	//if uid == "" {
-	//	panic("uid no exist")
-	//}
+	if uid == "" {
+		panic("uid no exist")
+	}
 
 	//uid, ok := ctx.Value("_uid").(string)
 	//if !ok {

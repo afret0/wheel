@@ -3,6 +3,7 @@ package frame
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/afret0/wheel/constant"
 	"github.com/gin-gonic/gin"
@@ -59,4 +60,30 @@ func IsHayo(ctx context.Context) bool {
 func IsKeke(ctx context.Context) bool {
 	app := App(ctx)
 	return app == constant.Keke
+}
+
+func UrlContainsCMS(ctx context.Context) bool {
+	reqUrl := Request(ctx).RequestURI
+	if strings.Contains(reqUrl, "CMS") {
+		return true
+	}
+	return false
+}
+
+func Uid(ctx context.Context) string {
+	header := Header(ctx)
+	uid := header.Get("_uid")
+	//if uid == "" {
+	//	panic("uid no exist")
+	//}
+
+	//uid, ok := ctx.Value("_uid").(string)
+	//if !ok {
+	//	panic("uid not found in context")
+	//}
+	//if uid == "" {
+	//	panic("uid is empty")
+	//}
+
+	return uid
 }

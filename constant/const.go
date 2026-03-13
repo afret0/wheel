@@ -8,3 +8,5 @@ const Keke = "keke"
 
 const SucCode = 1
 const Suc = "success"
+
+const FindListOffset = 50

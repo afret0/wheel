@@ -1,7 +1,6 @@
 package tool
 
 import (
-	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -17,8 +16,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc/status"
-
-	"github.com/afret0/wheel/frame"
 )
 
 func init() {
@@ -127,14 +124,6 @@ func MD5(s string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func UrlContainsCMS(ctx context.Context) bool {
-	reqUrl := frame.Request(ctx).RequestURI
-	if strings.Contains(reqUrl, "CMS") {
-		return true
-	}
-	return false
-}
-
 func FormatToWan(num int64) string {
 	fuhao := ""
 	if num < 0 {
@@ -206,4 +195,57 @@ func GenderFromID(id string) (int, error) {
 	}
 
 	return 0, fmt.Errorf("id err")
+}
+
+func FindFieldByJSONTag(v any, tag string) (fieldName string, ok bool) {
+	t := reflect.TypeOf(v)
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+
+	for i := 0; i < t.NumField(); i++ {
+		f := t.Field(i)
+		if f.Tag.Get("json") == tag {
+			return f.Name, true
+		}
+	}
+	return "", false
+}
+
+func FindFieldByBSONTag(v any, tag string) (fieldName string, ok bool) {
+	t := reflect.TypeOf(v)
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+
+	for i := 0; i < t.NumField(); i++ {
+		f := t.Field(i)
+		if f.Tag.Get("bson") == tag {
+			return f.Name, true
+		}
+	}
+	return "", false
+}
+
+func ExtractFieldValueByBSONTag(v any, tag string) (any, bool) {
+	rv := reflect.ValueOf(v)
+	if rv.Kind() == reflect.Pointer {
+		rv = rv.Elem()
+	}
+	if rv.Kind() != reflect.Struct {
+		return nil, false
+	}
+
+	rt := rv.Type()
+
+	for i := 0; i < rt.NumField(); i++ {
+		f := rt.Field(i)
+		if f.Tag.Get("bson") == tag {
+			fv := rv.Field(i)
+			if fv.IsValid() {
+				return fv.Interface(), true
+			}
+		}
+	}
+	return nil, false
 }
