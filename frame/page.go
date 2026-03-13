@@ -57,7 +57,7 @@ import (
 //
 //}
 
-func WithFind[T any](
+func FindWithPage[T any](
 	ctx context.Context,
 	repo *database.Repository,
 	filter bson.M,

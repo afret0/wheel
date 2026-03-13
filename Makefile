@@ -1,4 +1,4 @@
-tag = v1.1.85-1
+tag = v1.1.86
 
 prod:
 	git commit -am "f" && git push
