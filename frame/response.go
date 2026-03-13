@@ -1,5 +1,7 @@
 package frame
 
+import "github.com/afret0/wheel/database"
+
 type BaseResponse struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
@@ -18,23 +20,12 @@ type BaseResponse struct {
 // 	PrevPageTag string `json:"forwardPageTag"`
 // }
 
-type Page struct {
-	Count       int64  `json:"count"`
-	IsLastPage  bool   `json:"isLastPage"`
-	PageTag     string `json:"pageTag"`
-	PrevPageTag string `json:"prevPageTag"`
-}
+// Deprecated, use database.Page
+type Page = database.Page
 
-const DirectionForward = -1
-const DirectionBackward = 1
-
-func (p *Page) Direction() (int, string) {
-	if p == nil {
-		return DirectionBackward, ""
-	}
-
-	if p.PrevPageTag != "" {
-		return DirectionForward, p.PrevPageTag
-	}
-	return DirectionBackward, p.PageTag
-}
+//type Page struct {
+//	Count       int64  `json:"count"`
+//	IsLastPage  bool   `json:"isLastPage"`
+//	PageTag     string `json:"pageTag"`
+//	PrevPageTag string `json:"prevPageTag"`
+//}

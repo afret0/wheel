@@ -1,11 +1,10 @@
-package frame
+package database
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/afret0/wheel/constant"
-	"github.com/afret0/wheel/database"
 	"github.com/afret0/wheel/log"
 	"github.com/afret0/wheel/tool"
 	"github.com/afret0/wheel/tool/timeTool"
@@ -14,48 +13,26 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-//func WithFind[T any](ctx context.Context, repo *database.Repository, filter bson.M, SortField string, pt *Page, optChain ...*options.FindOptions) ([]T, *Page, error) {
-//	lg := log.CtxLogger(ctx).WithFields(logrus.Fields{})
-//
-//	opt := &options.FindOptions{Sort: bson.M{SortField: -1}, Limit: tool.Int64Ptr(constant.FindListOffset)}
-//	for _, v := range optChain {
-//		opt = v
-//	}
-//
-//	direction, ptS := pt.Direction()
-//	if ptS != "" && tool.ConStringToInt64WithoutErr(ptS) >= 0 {
-//		filter[SortField] = bson.M{"$lt": timeTool.ParseMillisecond(tool.ConStringToInt64WithoutErr(ptS))}
-//		if direction == DirectionForward {
-//			opt.Sort = bson.M{SortField: 1}
-//			filter[SortField] = bson.M{"$gt": timeTool.ParseMillisecond(tool.ConStringToInt64WithoutErr(ptS))}
-//		}
-//	}
-//
-//	l := make([]T, 0)
-//	err := repo.Find(ctx, &l, filter, opt)
-//	if err != nil {
-//		lg.Errorf("err: %d", err)
-//		return nil, nil, err
-//	}
-//
-//	if direction == DirectionForward {
-//		mutable.Reverse(l)
-//	}
-//
-//	pt1 := &Page{
-//		IsLastPage: len(l) < constant.FindListOffset,
-//		Count:      int64(len(l)),
-//	}
-//
-//	if len(l) <= 0 {
-//		return l, pt1, nil
-//	}
-//
-//	cur, ok := tool.ExtractFieldValueByBSONTag(l[pt1.Count-1], SortField)
-//
-//	return l, pt1, nil
-//
-//}
+type Page struct {
+	Count       int64  `json:"count"`
+	IsLastPage  bool   `json:"isLastPage"`
+	PageTag     string `json:"pageTag"`
+	PrevPageTag string `json:"prevPageTag"`
+}
+
+const DirectionForward = -1
+const DirectionBackward = 1
+
+func (p *Page) Direction() (int, string) {
+	if p == nil {
+		return DirectionBackward, ""
+	}
+
+	if p.PrevPageTag != "" {
+		return DirectionForward, p.PrevPageTag
+	}
+	return DirectionBackward, p.PageTag
+}
 
 type ListWithPage[T any] struct {
 	L     []T `json:"l"`
@@ -64,7 +41,7 @@ type ListWithPage[T any] struct {
 
 func FindWithPage[T any](
 	ctx context.Context,
-	repo *database.Repository,
+	repo *Repository,
 	filter bson.M,
 	sortField string,
 	pt *Page,
