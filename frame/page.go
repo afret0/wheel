@@ -57,6 +57,11 @@ import (
 //
 //}
 
+type ListWithPage[T any] struct {
+	L     []T `json:"l"`
+	*Page `json:"page"`
+}
+
 func FindWithPage[T any](
 	ctx context.Context,
 	repo *database.Repository,
@@ -64,10 +69,7 @@ func FindWithPage[T any](
 	sortField string,
 	pt *Page,
 	optChain ...*options.FindOptions,
-) (*struct {
-	L     []T `json:"l"`
-	*Page `json:"page"`
-}, error) {
+) (*ListWithPage[T], error) {
 
 	lg := log.CtxLogger(ctx)
 
@@ -125,10 +127,7 @@ func FindWithPage[T any](
 
 	if len(list) == 0 {
 		//return list, nextPage, nil
-		return &struct {
-			L     []T `json:"l"`
-			*Page `json:"page"`
-		}{
+		return &ListWithPage[T]{
 			L:    list,
 			Page: nextPage,
 		}, nil
@@ -150,10 +149,7 @@ func FindWithPage[T any](
 	}
 
 	//return list, nextPage, nil
-	return &struct {
-		L     []T `json:"l"`
-		*Page `json:"page"`
-	}{
+	return &ListWithPage[T]{
 		L:    list,
 		Page: nextPage,
 	}, nil
