@@ -64,7 +64,10 @@ func FindWithPage[T any](
 	sortField string,
 	pt *Page,
 	optChain ...*options.FindOptions,
-) ([]T, *Page, error) {
+) (*struct {
+	L     []T `json:"l"`
+	*Page `json:"page"`
+}, error) {
 
 	lg := log.CtxLogger(ctx)
 
@@ -104,7 +107,7 @@ func FindWithPage[T any](
 	list := make([]T, 0)
 	if err := repo.Find(ctx, &list, filter, opt); err != nil {
 		lg.Errorf("mongo find error: %v", err)
-		return nil, nil, err
+		return nil, err
 	}
 
 	// forward 查询结果需要反转
@@ -121,7 +124,14 @@ func FindWithPage[T any](
 	}
 
 	if len(list) == 0 {
-		return list, nextPage, nil
+		//return list, nextPage, nil
+		return &struct {
+			L     []T `json:"l"`
+			*Page `json:"page"`
+		}{
+			L:    list,
+			Page: nextPage,
+		}, nil
 	}
 
 	// -----------------------------
@@ -139,5 +149,12 @@ func FindWithPage[T any](
 		nextPage.PrevPageTag = fmt.Sprintf("%v", val)
 	}
 
-	return list, nextPage, nil
+	//return list, nextPage, nil
+	return &struct {
+		L     []T `json:"l"`
+		*Page `json:"page"`
+	}{
+		L:    list,
+		Page: nextPage,
+	}, nil
 }
