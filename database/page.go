@@ -34,7 +34,7 @@ func (p *Page) Direction() (int, string) {
 	return DirectionBackward, p.PageTag
 }
 
-type ListWithPage[T any] struct {
+type AggrListPage[T any] struct {
 	L     []T `json:"l"`
 	*Page `json:"page"`
 }
@@ -46,7 +46,7 @@ func FindWithPage[T any](
 	sortField string,
 	pt *Page,
 	optChain ...*options.FindOptions,
-) (*ListWithPage[T], error) {
+) (*AggrListPage[T], error) {
 
 	lg := log.CtxLogger(ctx)
 
@@ -104,7 +104,7 @@ func FindWithPage[T any](
 
 	if len(list) == 0 {
 		//return list, nextPage, nil
-		return &ListWithPage[T]{
+		return &AggrListPage[T]{
 			L:    list,
 			Page: nextPage,
 		}, nil
@@ -126,7 +126,7 @@ func FindWithPage[T any](
 	}
 
 	//return list, nextPage, nil
-	return &ListWithPage[T]{
+	return &AggrListPage[T]{
 		L:    list,
 		Page: nextPage,
 	}, nil
