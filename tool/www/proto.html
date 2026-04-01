@@ -382,6 +382,7 @@
         function parseGolangStruct(input) {
             const fields = [];
             const nestedStructs = {};
+            const parsedStructs = [];
             
             // 首先提取所有的 type ... struct 定义
             const typeRegex = /type\s+(\w+)\s+struct\s*{([^}]*)}/gs;
@@ -410,17 +411,26 @@
                         });
                     }
                 }
-                
-                if (structName !== 'Data') {
-                    // 非主结构体，存入 nestedStructs
-                    nestedStructs[structName] = { fields: structFields };
-                } else {
-                    // 主结构体的字段
-                    fields.push(...structFields);
+
+                parsedStructs.push({ name: structName, fields: structFields });
+            }
+
+            // 主结构体优先使用 Data；若不存在则使用第一个定义
+            const mainStruct = parsedStructs.find(s => s.name === 'Data') || parsedStructs[0];
+            if (mainStruct) {
+                fields.push(...mainStruct.fields);
+                for (const s of parsedStructs) {
+                    if (s.name !== mainStruct.name) {
+                        nestedStructs[s.name] = { fields: s.fields };
+                    }
                 }
             }
             
-            return { name: 'Data', fields, nestedStructs: Object.keys(nestedStructs).length > 0 ? nestedStructs : undefined };
+            return {
+                name: mainStruct ? mainStruct.name : 'Data',
+                fields,
+                nestedStructs: Object.keys(nestedStructs).length > 0 ? nestedStructs : undefined
+            };
         }
 
         // 解析 JSON
@@ -471,6 +481,7 @@
         function parseProtobuf(input) {
             const fields = [];
             const nestedStructs = {};
+            const parsedMessages = [];
             const messageRegex = /message\s+(\w+)\s*{([^}]*)}/g;
             let match;
             
@@ -493,15 +504,26 @@
                         });
                     }
                 }
-                
-                if (messageName !== 'Data') {
-                    nestedStructs[messageName] = { fields: messageFields };
-                } else {
-                    fields.push(...messageFields);
+
+                parsedMessages.push({ name: messageName, fields: messageFields });
+            }
+
+            // 主消息优先使用 Data；若不存在则使用第一个定义
+            const mainMessage = parsedMessages.find(m => m.name === 'Data') || parsedMessages[0];
+            if (mainMessage) {
+                fields.push(...mainMessage.fields);
+                for (const m of parsedMessages) {
+                    if (m.name !== mainMessage.name) {
+                        nestedStructs[m.name] = { fields: m.fields };
+                    }
                 }
             }
 
-            return { name: 'Data', fields, nestedStructs: Object.keys(nestedStructs).length > 0 ? nestedStructs : undefined };
+            return {
+                name: mainMessage ? mainMessage.name : 'Data',
+                fields,
+                nestedStructs: Object.keys(nestedStructs).length > 0 ? nestedStructs : undefined
+            };
         }
 
         // 类型推断
