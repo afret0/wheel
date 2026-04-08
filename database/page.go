@@ -35,8 +35,8 @@ func (p *Page) Direction() (int, string) {
 }
 
 type AggrListPage[T any] struct {
-	L     []T `json:"l"`
-	*Page `json:"page"`
+	L    []T   `json:"l"`
+	Page *Page `json:"page"`
 }
 
 func FindWithPage[T any](
