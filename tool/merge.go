@@ -42,7 +42,7 @@ func MergeByReflection(from interface{}, to interface{}) error {
 	return nil
 }
 
-// MergeByJson Deprecated  use CopyByJson instead
+// Deprecated  use CopyByJson instead
 func MergeByJson(from interface{}, to interface{}) {
 	CopyByJson(from, to)
 }

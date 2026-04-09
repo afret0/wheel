@@ -22,7 +22,7 @@ type Page struct {
 
 func ConvPage(pt interface{}) *Page {
 	pt1 := &Page{}
-	tool.MergeByJson(pt, pt1)
+	tool.CopyByJson(pt, pt1)
 	return pt1
 }
 
