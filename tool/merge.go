@@ -2,8 +2,9 @@ package tool
 
 import (
 	"errors"
-	jsoniter "github.com/json-iterator/go"
 	"reflect"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -41,7 +42,12 @@ func MergeByReflection(from interface{}, to interface{}) error {
 	return nil
 }
 
+// MergeByJson Deprecated  use CopyByJson instead
 func MergeByJson(from interface{}, to interface{}) {
+	CopyByJson(from, to)
+}
+
+func CopyByJson(from interface{}, to interface{}) {
 	fromJson, _ := json.Marshal(from)
 	_ = json.Unmarshal(fromJson, to)
 }

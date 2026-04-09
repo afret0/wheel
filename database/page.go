@@ -20,7 +20,7 @@ type Page struct {
 	PrevPageTag string `json:"prevPageTag"`
 }
 
-func MergePage(pt interface{}) *Page {
+func ConvPage(pt interface{}) *Page {
 	pt1 := &Page{}
 	tool.MergeByJson(pt, pt1)
 	return pt1
