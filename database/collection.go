@@ -15,6 +15,12 @@ type Repository struct {
 	logger     *logrus.Logger
 }
 
+type Repo = Repository
+
+func GetRepo(db *MongoDB, collection string) *Repo {
+	return GetRepository(db, collection)
+}
+
 func GetRepository(db *MongoDB, collection string) *Repository {
 
 	if collection == "" {
