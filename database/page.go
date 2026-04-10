@@ -20,11 +20,11 @@ type Page struct {
 	PrevPageTag string `json:"prevPageTag"`
 }
 
-func ConvPage(pt interface{}) *Page {
-	pt1 := &Page{}
-	tool.CopyByJson(pt, pt1)
-	return pt1
-}
+//func ConvPage(pt interface{}) *Page {
+//	pt1 := &Page{}
+//	tool.CopyByJson(pt, pt1)
+//	return pt1
+//}
 
 const DirectionForward = -1
 const DirectionBackward = 1
@@ -50,7 +50,7 @@ func FindWithPage[T any](
 	repo *Repository,
 	filter bson.M,
 	sortField string,
-	pt *Page,
+	ptI interface{},
 	optChain ...*options.FindOptions,
 ) (*AggrListPage[T], error) {
 
@@ -71,6 +71,17 @@ func FindWithPage[T any](
 	// -----------------------------
 	// 1. 解析分页方向
 	// -----------------------------
+	ptS, err := tool.Marshal(ptI)
+	if err != nil {
+		return nil, err
+	}
+
+	pt := &Page{}
+	err = tool.Unmarshal(ptS, pt)
+	if err != nil {
+		return nil, err
+	}
+
 	direction, tag := pt.Direction()
 	if tag != "" {
 		ts := tool.ConStringToInt64WithoutErr(tag)
