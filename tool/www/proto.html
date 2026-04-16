@@ -329,28 +329,36 @@
     </div>
 
     <script>
-        // 尝试解包序列化后的 JSON 字符串（如 "{\"key\":\"value\"}"）
+        // 尝试解包序列化后的 JSON 字符串（如 "{\"key\":\"value\"}" 或 {\"key\":\"value\"}）
         function tryUnwrapEscapedJSON(input) {
             const trimmed = input.trim();
-            // 检测外层被引号包裹且内部含有转义引号的情况
+            // 情况1: 外层被引号包裹 "{\"key\":\"value\"}"
             if ((trimmed.startsWith('"') && trimmed.endsWith('"')) ||
                 (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
                 const inner = trimmed.slice(1, -1);
                 if (inner.includes('\\"') || inner.includes("\\'")) {
                     try {
-                        // 用 JSON.parse 解包外层引号 + 转义
                         const unescaped = JSON.parse(trimmed);
                         if (typeof unescaped === 'string' && 
                             (unescaped.trim().startsWith('{') || unescaped.trim().startsWith('['))) {
                             return unescaped.trim();
                         }
                     } catch (e) {
-                        // JSON.parse 失败时手动替换转义
                         const manual = inner.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
                         if (manual.trim().startsWith('{') || manual.trim().startsWith('[')) {
                             return manual.trim();
                         }
                     }
+                }
+            }
+            // 情况2: 无外层引号但含转义引号 {\"key\":\"value\"}
+            if ((trimmed.startsWith('{') || trimmed.startsWith('[')) && trimmed.includes('\\"')) {
+                const unescaped = trimmed.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+                try {
+                    JSON.parse(unescaped);
+                    return unescaped;
+                } catch (e) {
+                    // 解析失败则返回原始内容
                 }
             }
             return trimmed;
