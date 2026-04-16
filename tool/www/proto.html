@@ -329,6 +329,33 @@
     </div>
 
     <script>
+        // 尝试解包序列化后的 JSON 字符串（如 "{\"key\":\"value\"}"）
+        function tryUnwrapEscapedJSON(input) {
+            const trimmed = input.trim();
+            // 检测外层被引号包裹且内部含有转义引号的情况
+            if ((trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+                (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+                const inner = trimmed.slice(1, -1);
+                if (inner.includes('\\"') || inner.includes("\\'")) {
+                    try {
+                        // 用 JSON.parse 解包外层引号 + 转义
+                        const unescaped = JSON.parse(trimmed);
+                        if (typeof unescaped === 'string' && 
+                            (unescaped.trim().startsWith('{') || unescaped.trim().startsWith('['))) {
+                            return unescaped.trim();
+                        }
+                    } catch (e) {
+                        // JSON.parse 失败时手动替换转义
+                        const manual = inner.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+                        if (manual.trim().startsWith('{') || manual.trim().startsWith('[')) {
+                            return manual.trim();
+                        }
+                    }
+                }
+            }
+            return trimmed;
+        }
+
         // 自动检测输入类型
         function detectInputType(input) {
             const trimmed = input.trim();
@@ -743,12 +770,15 @@
         // 转换主函数
         function convert() {
             hideError();
-            const input = document.getElementById('inputText').value.trim();
+            let input = document.getElementById('inputText').value.trim();
             
             if (!input) {
                 showError('请输入要转换的内容');
                 return;
             }
+
+            // 预处理：解包序列化后的 JSON 字符串
+            input = tryUnwrapEscapedJSON(input);
 
             try {
                 // 自动检测输入类型

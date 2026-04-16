@@ -23,12 +23,13 @@ func FormatStack(stack string) string {
 	return strings.Join(formatted, "\n")
 }
 
-func formatHtml(service, errMsg string, stack string) string {
+func formatHtml(service, errMsg string, stack string, suppressed int64) string {
 	// 创建一个简单的 HTML 结构
 	htmlContent := "<html><head>\n"
 	htmlContent += "<style>\n"
 	htmlContent += "body { font-family: monospace; font-size: 16px; margin: 20px; }\n"
 	htmlContent += ".error { color: #ff0000; font-weight: bold; margin-bottom: 10px; }\n"
+	htmlContent += ".suppressed { color: #ff6600; font-weight: bold; margin-bottom: 10px; }\n"
 	htmlContent += ".stack { white-space: pre-wrap; }\n"
 	htmlContent += "</style>\n"
 	htmlContent += "</head><body>\n"
@@ -36,6 +37,10 @@ func formatHtml(service, errMsg string, stack string) string {
 	// 添加服务名称和错误信息
 	htmlContent += fmt.Sprintf("<div class='error'>service: %s</div>\n", service)
 	htmlContent += fmt.Sprintf("<div class='error'>panic: %s</div>\n", html.EscapeString(errMsg))
+
+	if suppressed > 0 {
+		htmlContent += fmt.Sprintf("<div class='suppressed'>⚠ This error occurred %d more times since last notification (suppressed)</div>\n", suppressed)
+	}
 
 	// 添加堆栈信息，保持原始格式但转义特殊字符
 	htmlContent += "<div class='stack'>\n"

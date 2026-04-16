@@ -153,11 +153,20 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 		statusCode := c.Writer.Status()
 		uid := c.Request.Header.Get("_uid")
 
-		lg.WithFields(logrus.Fields{
+		fields := logrus.Fields{
 			"latencyT":   latencyT.Milliseconds(),
 			"res":        blw.body.String(),
 			"uid":        uid,
 			"statusCode": statusCode,
-		}).Info("请求日志")
+		}
+
+		switch {
+		case statusCode >= 500:
+			lg.WithFields(fields).Error("request log")
+		case statusCode >= 400:
+			lg.WithFields(fields).Warn("request log")
+		default:
+			lg.WithFields(fields).Info("request log")
+		}
 	}
 }

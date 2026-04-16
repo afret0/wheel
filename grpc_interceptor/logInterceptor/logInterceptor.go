@@ -21,13 +21,18 @@ import (
 
 	"github.com/afret0/wheel/log"
 	"github.com/afret0/wheel/tool"
+	"github.com/afret0/wheel/tool/recoverTool"
 )
 
 type Option struct {
 	Service        string `json:"service"`
 	ReportToSentry bool   `json:"reportToSentry"`
+	ReportToEmail  bool   `json:"reportToEmail"`
 	RePanic        bool   `json:"rePanic"`
 	Debug          bool   `json:"debug"`
+
+	EmailReceiver []string             `json:"emailReceiver"`
+	EmailSvc      recoverTool.EmailSvc `json:"emailSvc"`
 }
 
 type Opt = Option
@@ -100,6 +105,15 @@ func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 					go sentry.CaptureException(errors.New(p))
 				}
 
+				if opt.ReportToEmail {
+					go recoverTool.GetRecoverTool(&recoverTool.Option{
+						Service:       opt.Service,
+						Env:           tool.GetEnv(),
+						EmailReceiver: opt.EmailReceiver,
+						EmailSvc:      opt.EmailSvc,
+					}).HandleRecover(r, recoverTool.FormatStack(stack))
+				}
+
 				if opt.RePanic {
 					panic(p)
 				}
@@ -113,11 +127,19 @@ func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 
 		endT := time.Now()
 		latencyT := endT.Sub(startT)
-		lg.WithFields(logrus.Fields{
+
+		fields := logrus.Fields{
 			"latencyT": latencyT.Milliseconds(),
 			"res":      resp,
 			"err":      err,
-		}).Info("请求日志")
+		}
+
+		if err != nil {
+			lg.WithFields(fields).Error("request log")
+		} else {
+			lg.WithFields(fields).Info("request log")
+		}
+
 		return resp, err
 	}
 }
