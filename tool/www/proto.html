@@ -329,41 +329,6 @@
     </div>
 
     <script>
-        // 尝试解包序列化后的 JSON 字符串（如 "{\"key\":\"value\"}" 或 {\"key\":\"value\"}）
-        function tryUnwrapEscapedJSON(input) {
-            const trimmed = input.trim();
-            // 情况1: 外层被引号包裹 "{\"key\":\"value\"}"
-            if ((trimmed.startsWith('"') && trimmed.endsWith('"')) ||
-                (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
-                const inner = trimmed.slice(1, -1);
-                if (inner.includes('\\"') || inner.includes("\\'")) {
-                    try {
-                        const unescaped = JSON.parse(trimmed);
-                        if (typeof unescaped === 'string' && 
-                            (unescaped.trim().startsWith('{') || unescaped.trim().startsWith('['))) {
-                            return unescaped.trim();
-                        }
-                    } catch (e) {
-                        const manual = inner.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
-                        if (manual.trim().startsWith('{') || manual.trim().startsWith('[')) {
-                            return manual.trim();
-                        }
-                    }
-                }
-            }
-            // 情况2: 无外层引号但含转义引号 {\"key\":\"value\"}
-            if ((trimmed.startsWith('{') || trimmed.startsWith('[')) && trimmed.includes('\\"')) {
-                const unescaped = trimmed.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
-                try {
-                    JSON.parse(unescaped);
-                    return unescaped;
-                } catch (e) {
-                    // 解析失败则返回原始内容
-                }
-            }
-            return trimmed;
-        }
-
         // 自动检测输入类型
         function detectInputType(input) {
             const trimmed = input.trim();
@@ -778,15 +743,12 @@
         // 转换主函数
         function convert() {
             hideError();
-            let input = document.getElementById('inputText').value.trim();
+            const input = document.getElementById('inputText').value.trim();
             
             if (!input) {
                 showError('请输入要转换的内容');
                 return;
             }
-
-            // 预处理：解包序列化后的 JSON 字符串
-            input = tryUnwrapEscapedJSON(input);
 
             try {
                 // 自动检测输入类型

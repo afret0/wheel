@@ -318,6 +318,40 @@
             }
         }
 
+        // 尝试解包序列化后的 JSON 字符串
+        // 支持: "{\"key\":\"value\"}" 和 {\"key\":\"value\"}
+        function tryUnwrapEscapedJSON(input) {
+            const trimmed = input.trim();
+            // 情况1: 外层被引号包裹 "{\"key\":\"value\"}"
+            if ((trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+                (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+                const inner = trimmed.slice(1, -1);
+                if (inner.includes('\\"') || inner.includes("\\'")) {
+                    try {
+                        const unescaped = JSON.parse(trimmed);
+                        if (typeof unescaped === 'string' &&
+                            (unescaped.trim().startsWith('{') || unescaped.trim().startsWith('['))) {
+                            return { ok: true, value: unescaped.trim() };
+                        }
+                    } catch (e) {
+                        const manual = inner.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+                        if (manual.trim().startsWith('{') || manual.trim().startsWith('[')) {
+                            return { ok: true, value: manual.trim() };
+                        }
+                    }
+                }
+            }
+            // 情况2: 无外层引号但含转义引号 {\"key\":\"value\"}
+            if ((trimmed.startsWith('{') || trimmed.startsWith('[')) && trimmed.includes('\\"')) {
+                const unescaped = trimmed.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+                const parsed = tryParseJSON(unescaped);
+                if (parsed.ok) {
+                    return { ok: true, value: unescaped };
+                }
+            }
+            return { ok: false };
+        }
+
         function pretty(obj) {
             if (typeof obj === 'string') return obj;
             try { return JSON.stringify(obj, null, 2); } catch (e) { return String(obj); }
@@ -400,8 +434,34 @@
 
             if (!input) return;
 
+            // 先尝试解包转义 JSON（如 {\"key\":\"val\"} 或 "{\"key\":\"val\"}"）
+            const unwrapped = tryUnwrapEscapedJSON(input);
+            if (unwrapped.ok) {
+                elRaw.textContent = unwrapped.value;
+                const parsed = tryParseJSON(unwrapped.value);
+                if (parsed.ok) {
+                    elParsed.textContent = pretty(parsed.value);
+                    const deep = deepParseJSONStrings(parsed.value);
+                    elDeep.textContent = pretty(deep);
+                } else {
+                    elParsed.textContent = '解包后仍无法解析为 JSON';
+                    elDeep.textContent = unwrapped.value;
+                }
+                return;
+            }
+
+            // 常规日志解析流程：提取 content 字段
             const ext = extractContentString(input);
             if (!ext.ok) {
+                // 最后兜底：直接尝试作为普通 JSON 解析
+                const directParsed = tryParseJSON(input);
+                if (directParsed.ok) {
+                    elRaw.textContent = input;
+                    elParsed.textContent = pretty(directParsed.value);
+                    const deep = deepParseJSONStrings(directParsed.value);
+                    elDeep.textContent = pretty(deep);
+                    return;
+                }
                 elRaw.textContent = ext.error || '解析失败';
                 return;
             }
