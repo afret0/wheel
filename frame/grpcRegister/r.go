@@ -22,6 +22,7 @@ type GrpcController interface {
 }
 
 type Option struct {
+	// PrefixWhiteList 用于指定不需要注册到 Gin 路由的 gRPC 方法前缀
 	PrefixWhiteList      []string
 	MethodMiddlewareSlot map[string]MethodMiddlewareSlot
 }
