@@ -249,3 +249,7 @@ func ExtractFieldValueByBSONTag(v any, tag string) (any, bool) {
 	}
 	return nil, false
 }
+
+func IsK8sHayo() bool {
+	return os.Getenv("K8S-APP") == "hayo"
+}

@@ -1,4 +1,4 @@
-tag = v1.1.895
+tag = v1.1.896
 
 build:
 	git commit -am "f" && git push || true
