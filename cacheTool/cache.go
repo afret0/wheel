@@ -27,6 +27,7 @@ type cacheResult[T any] struct {
 //	// 添加其他需要识别的错误...
 //}
 
+// Deprecated
 type SliceWrapper[T any] struct {
 	L []T `json:"l" msgpack:"l"`
 }
