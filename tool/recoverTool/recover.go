@@ -33,6 +33,18 @@ type Option struct {
 	EmailSvc      EmailSvc `json:"emailSvc"`
 }
 
+/*
+	func main() {
+	    defer recoverTool.GetRecoverTool(&recoverTool.Option{
+	        Service:       "your-service-name",        // 服务名（必填）
+	        Env:           tool.GetEnv(),              // 环境名（必填）
+	        EmailReceiver: []string{"you@example.com"}, // 收件人（可省略）
+	        EmailSvc:      &YourEmailSvc{},            // 邮件发送实现（设了收件人就必填）
+	    }).Recover()
+
+	    // ... 这里发生 panic 就会被捕获
+	}
+*/
 func GetRecoverTool(opt *Option) *RecoverTool {
 	if rt != nil {
 		return rt
