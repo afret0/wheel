@@ -66,7 +66,6 @@ func (l *Limit) ShouldSend(key string) (bool, int64) {
 	}
 
 	entry.count++
-	entry.suppressed++
 
 	if time.Since(entry.lastSent) >= l.cooldown {
 		suppressed := entry.suppressed
@@ -75,5 +74,6 @@ func (l *Limit) ShouldSend(key string) (bool, int64) {
 		return true, suppressed
 	}
 
+	entry.suppressed++
 	return false, 0
 }

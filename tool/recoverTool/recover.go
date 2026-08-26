@@ -124,6 +124,11 @@ func (r *RecoverTool) HandleRecover(ro any, stack string) {
 		errMsg = fmt.Sprintf("%v", v)
 	}
 
+	if r.emailSvc == nil || len(r.emailReceiver) == 0 {
+		r.lg.Warnf("recover tool emailSvc is nil or emailReceiver is empty, skip sending email")
+		return
+	}
+
 	shouldSend, suppressed := r.limit.ShouldSend(errMsg)
 	if !shouldSend {
 		r.lg.Infof("recover tool email suppressed (cooldown active), error: %s", errMsg)
