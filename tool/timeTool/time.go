@@ -2,6 +2,7 @@ package timeTool
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -20,6 +21,35 @@ func LastWeek() string {
 	lastWeek := LocalNow().AddDate(0, 0, -7)
 	year, week := lastWeek.ISOWeek()
 	return fmt.Sprintf("%d%02d", year, week)
+}
+
+func LastWeekByTime(t time.Time) string {
+	lastWeek := t.AddDate(0, 0, -7)
+	year, week := lastWeek.ISOWeek()
+	return fmt.Sprintf("%d%02d", year, week)
+}
+
+// ParseWeek 解析 "YYYYWW" 格式的周字符串，返回该 ISO 周的周一零点
+func ParseWeek(weekStr string) (time.Time, error) {
+	if len(weekStr) != 6 {
+		return time.Time{}, fmt.Errorf("invalid week format: %s", weekStr)
+	}
+	year, err := strconv.Atoi(weekStr[:4])
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid year in week string: %s", weekStr)
+	}
+	week, err := strconv.Atoi(weekStr[4:])
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid week number in week string: %s", weekStr)
+	}
+	// ISO 规定 1月4日一定在第1周，以此推算该年第1周的周一
+	jan4 := time.Date(year, time.January, 4, 0, 0, 0, 0, TZBeijing())
+	weekday := int(jan4.Weekday())
+	if weekday == 0 {
+		weekday = 7 // 周日在 ISO 中为第7天
+	}
+	monday := jan4.AddDate(0, 0, 1-weekday)
+	return monday.AddDate(0, 0, (week-1)*7), nil
 }
 
 func WeekDay() time.Weekday {

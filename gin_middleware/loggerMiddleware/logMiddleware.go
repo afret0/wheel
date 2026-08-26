@@ -91,14 +91,16 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 		clientIP := c.ClientIP()
 
 		lg := GetMiddleWareLogger().WithFields(logrus.Fields{
-			"type": "middlewareLog",
-			"uri":  reqUri,
+			"type":   "middlewareLog",
+			"uri":    reqUri,
+			"domain": c.Request.Host,
 			//"token":    token,
 			"req":      string(req),
 			"opId":     opId,
 			"clientIP": clientIP,
 			"reqTime":  startT.Format("2006-01-02 15:04:05"),
 			"app":      app,
+			"method":   c.Request.Method,
 		})
 
 		for _, uri := range opt.WhiteList {
@@ -153,11 +155,20 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 		statusCode := c.Writer.Status()
 		uid := c.Request.Header.Get("_uid")
 
-		lg.WithFields(logrus.Fields{
+		fields := logrus.Fields{
 			"latencyT":   latencyT.Milliseconds(),
 			"res":        blw.body.String(),
 			"uid":        uid,
 			"statusCode": statusCode,
-		}).Info("请求日志")
+		}
+
+		switch {
+		case statusCode >= 500:
+			lg.WithFields(fields).Error("request log")
+		case statusCode >= 400:
+			lg.WithFields(fields).Warn("request log")
+		default:
+			lg.WithFields(fields).Info("request log")
+		}
 	}
 }

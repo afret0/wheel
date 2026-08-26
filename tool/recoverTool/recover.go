@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	"github.com/afret0/wheel/log"
 	"github.com/sirupsen/logrus"
+
+	"github.com/afret0/wheel/log"
 )
 
 type RecoverTool struct {
@@ -32,6 +33,18 @@ type Option struct {
 	EmailSvc      EmailSvc `json:"emailSvc"`
 }
 
+/*
+	func main() {
+	    defer recoverTool.GetRecoverTool(&recoverTool.Option{
+	        Service:       "your-service-name",        // 服务名（必填）
+	        Env:           tool.GetEnv(),              // 环境名（必填）
+	        EmailReceiver: []string{"you@example.com"}, // 收件人（可省略）
+	        EmailSvc:      &YourEmailSvc{},            // 邮件发送实现（设了收件人就必填）
+	    }).Recover()
+
+	    // ... 这里发生 panic 就会被捕获
+	}
+*/
 func GetRecoverTool(opt *Option) *RecoverTool {
 	if rt != nil {
 		return rt
@@ -97,9 +110,6 @@ func (r *RecoverTool) Recover() {
 
 func (r *RecoverTool) HandleRecover(ro any, stack string) {
 
-	//fmt.Println(ro)
-	//fmt.Println(stack)
-
 	var errMsg string
 
 	switch v := ro.(type) {
@@ -114,24 +124,25 @@ func (r *RecoverTool) HandleRecover(ro any, stack string) {
 		errMsg = fmt.Sprintf("%v", v)
 	}
 
-	//s, ok := ro.(string)
-	//if !ok {
-	//	r.lg.Errorf("recover tool ro.(error) failed, ro: %v", ro)
-	//	return
-	//}
-
-	count := r.limit.Count(errMsg)
-	//fmt.Printf("count: %d\n", count)
-	if count > 0 {
-		r.lg.Infof("recover tool already handled this error, count: %d, error: %s", count, errMsg)
+	if r.emailSvc == nil || len(r.emailReceiver) == 0 {
+		r.lg.Warnf("recover tool emailSvc is nil or emailReceiver is empty, skip sending email")
 		return
 	}
 
-	r.limit.Incr(errMsg)
+	shouldSend, suppressed := r.limit.ShouldSend(errMsg)
+	if !shouldSend {
+		r.lg.Infof("recover tool email suppressed (cooldown active), error: %s", errMsg)
+		return
+	}
 
-	htmlContent := formatHtml(r.service, errMsg, stack)
+	subject := fmt.Sprintf(" [ %s ]  %s [ %s ] ", r.service, errMsg, r.env)
+	if suppressed > 0 {
+		subject = fmt.Sprintf(" [ %s ]  %s [ %s ] (suppressed %d times)", r.service, errMsg, r.env, suppressed)
+	}
 
-	err := r.emailSvc.Send(r.emailReceiver, fmt.Sprintf(" [ %s ]  %s [ %s ] ", r.service, errMsg, r.env), htmlContent)
+	htmlContent := formatHtml(r.service, errMsg, stack, suppressed)
+
+	err := r.emailSvc.Send(r.emailReceiver, subject, htmlContent)
 	if err != nil {
 		r.lg.Errorf("err: %s", err)
 		return
