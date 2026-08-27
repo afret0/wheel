@@ -54,34 +54,33 @@ import (
 func Post(ctx context.Context, ret interface{}, url string, body interface{}, headers ...http.Header) error {
 	lg := log.CtxLogger(ctx).WithField("url", url)
 
+	ctx, span := startClientSpan(ctx, "POST", url)
+
 	opId := tool.ConvertOpId(tool.OpId(ctx))
 	hd := make(http.Header)
 	hd.Add("Content-Type", "application/json")
 	hd.Add("opId", opId)
 
+	// 必须在 client span 创建之后注入, 否则透传的是上层 span 而非本次调用
 	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(hd))
 
-	if len(headers) != 0 {
-		// hd = headers[0]
-		for k, v := range headers[0] {
-			if k != "opId" && k != "Traceparent" && k != "Tracestate" {
-				hd[k] = v
-			}
-		}
-	}
+	mergeHeader(hd, headers)
 
 	payloadJson, err := json.Marshal(body)
 	if err != nil {
+		endClientSpan(span, 0, err)
 		return err
 	}
 	payload := bytes.NewReader(payloadJson)
 	req, err := http.NewRequestWithContext(ctx, "POST", url, payload)
 	if err != nil {
+		endClientSpan(span, 0, err)
 		return err
 	}
 	req.Header = hd
 	resp, err := new(http.Client).Do(req)
 	if err != nil {
+		endClientSpan(span, 0, err)
 		return err
 	}
 	defer func() {
@@ -89,11 +88,14 @@ func Post(ctx context.Context, ret interface{}, url string, body interface{}, he
 	}()
 
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("statusCode is %v, url: %s", resp.StatusCode, url)
+		err = fmt.Errorf("statusCode is %v, url: %s", resp.StatusCode, url)
+		endClientSpan(span, resp.StatusCode, err)
+		return err
 	}
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
+		endClientSpan(span, resp.StatusCode, err)
 		return err
 	}
 
@@ -101,8 +103,11 @@ func Post(ctx context.Context, ret interface{}, url string, body interface{}, he
 
 	err = json.Unmarshal(respBody, ret)
 	if err != nil {
+		endClientSpan(span, resp.StatusCode, err)
 		return err
 	}
+
+	endClientSpan(span, resp.StatusCode, nil)
 
 	return nil
 }
@@ -120,27 +125,27 @@ func MarshallUrlParams(url string, params map[string]string) string {
 func Get(ctx context.Context, ret interface{}, url string, headers ...http.Header) error {
 	lg := log.CtxLogger(ctx).WithField("url", url)
 
+	ctx, span := startClientSpan(ctx, "GET", url)
+
 	opId := tool.ConvertOpId(tool.OpId(ctx))
 	hd := make(http.Header)
 	hd.Add("opId", opId)
+
+	// 必须在 client span 创建之后注入, 否则透传的是上层 span 而非本次调用
 	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(hd))
 
-	if len(headers) != 0 {
-		// hd = headers[0]
-		for k, v := range headers[0] {
-			if k != "opId" && k != "Traceparent" && k != "Tracestate" {
-				hd[k] = v
-			}
-		}
-	}
+	mergeHeader(hd, headers)
+
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
+		endClientSpan(span, 0, err)
 		return err
 	}
 	req.Header = hd
 
 	resp, err := new(http.Client).Do(req)
 	if err != nil {
+		endClientSpan(span, 0, err)
 		return err
 	}
 	defer func() {
@@ -148,11 +153,14 @@ func Get(ctx context.Context, ret interface{}, url string, headers ...http.Heade
 	}()
 
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("statusCode is %v, url: %s", resp.StatusCode, url)
+		err = fmt.Errorf("statusCode is %v, url: %s", resp.StatusCode, url)
+		endClientSpan(span, resp.StatusCode, err)
+		return err
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		endClientSpan(span, resp.StatusCode, err)
 		return err
 	}
 
@@ -160,8 +168,11 @@ func Get(ctx context.Context, ret interface{}, url string, headers ...http.Heade
 
 	err = json.Unmarshal(body, ret)
 	if err != nil {
+		endClientSpan(span, resp.StatusCode, err)
 		return err
 	}
+
+	endClientSpan(span, resp.StatusCode, nil)
 
 	return nil
 }

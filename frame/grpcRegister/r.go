@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/proto"
 
@@ -138,8 +139,17 @@ func (g *GrpcRegister) createHTTPHandler(ctrl reflect.Value, method reflect.Meth
 		var ctx context.Context = c
 		var span trace.Span
 		if tool.EnvEnabled("TRACE") {
+			// traceMiddleware 已建立根 span 时直接向下挂载; 未启用中间件时
+			// 退化为自行从请求头还原上游链路, 避免丢失 traceparent
+			if !trace.SpanContextFromContext(ctx).IsValid() {
+				ctx = otel.GetTextMapPropagator().Extract(
+					c.Request.Context(),
+					propagation.HeaderCarrier(c.Request.Header),
+				)
+			}
+
 			tracer := otel.Tracer("gin")
-			ctx, span = tracer.Start(c, fmt.Sprintf("%s", c.Request.URL))
+			ctx, span = tracer.Start(ctx, fmt.Sprintf("%s", c.Request.URL))
 
 			opId := tool.OpId(ctx)
 			span.SetAttributes(
