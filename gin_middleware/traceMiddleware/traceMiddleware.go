@@ -30,8 +30,26 @@ type Option struct {
 	WhiteList []string `json:"whiteList"`
 }
 
+// Setup 注册追踪中间件, 并打开 gin 的 ContextWithFallback。
+//
+// ContextWithFallback 是链路能否串起来的前提: 它关闭时 gin.Context.Value 不会回退到
+// Request.Context(), 业务代码里惯用的 `h.ctrl.Do(c, ...)` 写法就读不到中间件创建的
+// span, 后续所有 DB / Redis / 下游调用都会脱离链路。
+//
+// 副作用: 打开后 gin.Context 的 Deadline/Done/Err 同样回退到请求上下文, 请求结束后
+// 继续使用该 ctx 会得到 context canceled。脱离请求生命周期的后台任务应改用
+// tool.RenewCtx 派生 context, 它会保留链路但不继承 cancel。
+func Setup(e *gin.Engine, opts ...*Option) {
+	e.ContextWithFallback = true
+	e.Use(TraceMiddleware(opts...))
+}
+
 // TraceMiddleware 返回链路追踪中间件。
 // 未开启 TRACE 环境变量时返回空实现, 不产生任何额外开销。
+//
+// 注意: 单独使用本中间件时, 必须同时设置 engine.ContextWithFallback = true,
+// 否则业务代码把 *gin.Context 当作 context.Context 使用时读不到 span。
+// 推荐直接使用 Setup 完成注册。
 func TraceMiddleware(opts ...*Option) gin.HandlerFunc {
 	opt := new(Option)
 	if len(opts) > 0 && opts[0] != nil {
