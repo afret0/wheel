@@ -7,14 +7,9 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/afret0/wheel/frame/router"
-	"github.com/afret0/wheel/tool"
 )
 
 // GrpcController 接口用于标识实现了 gRPC 服务的 Controller
@@ -136,27 +131,10 @@ func (g *GrpcRegister) createHTTPHandler(ctrl reflect.Value, method reflect.Meth
 			return nil, err
 		}
 
+		// 根 span 由 traceMiddleware 统一创建(含入站 traceparent 的 Extract),
+		// 此处直接透传 gin.Context 即可; 依赖 engine.ContextWithFallback 打开,
+		// 由 traceMiddleware.Setup 负责设置
 		var ctx context.Context = c
-		var span trace.Span
-		if tool.EnvEnabled("TRACE") {
-			// traceMiddleware 已建立根 span 时直接向下挂载; 未启用中间件时
-			// 退化为自行从请求头还原上游链路, 避免丢失 traceparent
-			if !trace.SpanContextFromContext(ctx).IsValid() {
-				ctx = otel.GetTextMapPropagator().Extract(
-					c.Request.Context(),
-					propagation.HeaderCarrier(c.Request.Header),
-				)
-			}
-
-			tracer := otel.Tracer("gin")
-			ctx, span = tracer.Start(ctx, fmt.Sprintf("%s", c.Request.URL))
-
-			opId := tool.OpId(ctx)
-			span.SetAttributes(
-				attribute.String("opId", opId),
-			)
-			defer span.End()
-		}
 
 		// 调用 controller 方法，传递 gin.Context
 		results := method.Func.Call([]reflect.Value{
