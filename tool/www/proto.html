@@ -378,238 +378,265 @@
                       .replace(/^(.)/, c => c.toLowerCase());
         }
 
-        // 解析 Golang Struct
-        function parseGolangStruct(input) {
-            const fields = [];
-            const nestedStructs = {};
-            const parsedStructs = [];
-            
-            // 首先提取所有的 type ... struct 定义
-            const typeRegex = /type\s+(\w+)\s+struct\s*{([^}]*)}/gs;
-            let match;
-            
-            while ((match = typeRegex.exec(input)) !== null) {
-                const structName = match[1];
-                const content = match[2];
-                const lines = content.split('\n').map(l => l.trim()).filter(l => l);
-                
-                const structFields = [];
-                for (const line of lines) {
-                    // 匹配字段，支持指针类型 *Type 和数组类型 []*Type
-                    const fieldMatch = line.match(/(\w+)\s+([\[\]\*\w]+)(\s+`json:"([^"]+)"`)?/);
-                    if (fieldMatch) {
-                        const [, name, type, , jsonTag] = fieldMatch;
-                        // 跳过 json:"-" 标记的字段
-                        if (jsonTag === '-') {
-                            continue;
-                        }
-                        structFields.push({
-                            name,
-                            type: normalizeType(type, 'golang'),
-                            jsonName: jsonTag || toCamelCase(name),
-                            originalType: type  // 保留原始类型用于自定义类型
-                        });
-                    }
-                }
-
-                parsedStructs.push({ name: structName, fields: structFields });
-            }
-
-            // 主结构体优先使用 Data；若不存在则使用第一个定义
-            const mainStruct = parsedStructs.find(s => s.name === 'Data') || parsedStructs[0];
-            if (mainStruct) {
-                fields.push(...mainStruct.fields);
-                for (const s of parsedStructs) {
-                    if (s.name !== mainStruct.name) {
-                        nestedStructs[s.name] = { fields: s.fields };
-                    }
-                }
-            }
-            
-            return {
-                name: mainStruct ? mainStruct.name : 'Data',
-                fields,
-                nestedStructs: Object.keys(nestedStructs).length > 0 ? nestedStructs : undefined
-            };
+        // 转换为大驼峰
+        function toPascalCase(str) {
+            return str.replace(/[-_\s]+(.)/g, (_, c) => c.toUpperCase())
+                      .replace(/^(.)/, c => c.toUpperCase());
         }
 
-        // 解析 JSON
-        function parseJSON(input) {
-            try {
-                const obj = JSON.parse(input);
-                const fields = [];
-                const nestedStructs = {}; // 用来存储嵌套的结构体定义
-                
-                for (const [key, value] of Object.entries(obj)) {
-                    // 将小驼峰转为大驼峰作为字段名
-                    const fieldName = key.replace(/^(.)/, c => c.toUpperCase());
-                    
-                    // 特殊处理 notifyData 字段
-                    if (key === 'notifyData' && typeof value === 'object' && !Array.isArray(value)) {
-                        // 创建 NotifyData 结构体定义
-                        const notifyDataFields = [];
-                        for (const [notifyKey, notifyValue] of Object.entries(value)) {
-                            const notifyFieldName = notifyKey.replace(/^(.)/, c => c.toUpperCase());
-                            notifyDataFields.push({
-                                name: notifyFieldName,
-                                type: inferTypeFromValue(notifyValue),
-                                jsonName: notifyKey
-                            });
+        // 提取 `xxx Name {...}` 形式的块，使用大括号配对，支持 interface{} / 嵌套块
+        function extractBlocks(input, headerRe) {
+            const blocks = [];
+            let m;
+            headerRe.lastIndex = 0;
+            while ((m = headerRe.exec(input)) !== null) {
+                const braceStart = input.indexOf('{', m.index);
+                if (braceStart === -1) break;
+
+                let depth = 1;
+                let i = braceStart + 1;
+                while (i < input.length && depth > 0) {
+                    const c = input[i];
+                    if (c === '`' || c === '"' || c === "'") {
+                        const quote = c;
+                        i++;
+                        while (i < input.length && input[i] !== quote) {
+                            if (quote !== '`' && input[i] === '\\') i++;
+                            i++;
                         }
-                        nestedStructs['NotifyData'] = { fields: notifyDataFields };
-                        fields.push({
-                            name: fieldName,
-                            type: '*NotifyData',
-                            jsonName: key
-                        });
-                    } else {
-                        fields.push({
-                            name: fieldName,
-                            type: inferTypeFromValue(value),
-                            jsonName: key
-                        });
+                    } else if (c === '/' && input[i + 1] === '/') {
+                        while (i < input.length && input[i] !== '\n') i++;
+                        continue;
+                    } else if (c === '{') {
+                        depth++;
+                    } else if (c === '}') {
+                        depth--;
                     }
+                    i++;
                 }
 
-                return { name: 'Data', fields, nestedStructs };
+                blocks.push({ name: m[1], body: input.slice(braceStart + 1, i - 1) });
+                headerRe.lastIndex = i;
+            }
+            return blocks;
+        }
+
+        // 去掉类型上的指针 / 切片修饰，拿到基础类型名
+        function baseTypeName(type) {
+            return type.replace(/^(\[\])+/, '').replace(/^\*+/, '');
+        }
+
+        // 找出没有被其它结构体引用的顶层结构体（作为 JSON 的根）
+        function findRootStructs(structs) {
+            const referenced = new Set();
+            for (const s of structs) {
+                for (const f of s.fields) {
+                    const mapMatch = f.type.match(/^map\[([^\]]+)\](.+)$/);
+                    const candidates = mapMatch ? [mapMatch[1], mapMatch[2]] : [f.type];
+                    for (const c of candidates) {
+                        const base = baseTypeName(c.trim());
+                        if (base !== s.name) referenced.add(base);
+                    }
+                }
+            }
+            const roots = structs.filter(s => !referenced.has(s.name));
+            return roots.length > 0 ? roots : [structs[0]];
+        }
+
+        // 解析 Golang Struct（支持同时定义多个 struct）
+        function parseGolangStruct(input) {
+            const blocks = extractBlocks(input, /type\s+(\w+)\s+struct\s*\{/g);
+            const structs = [];
+
+            for (const block of blocks) {
+                const fields = [];
+                for (const rawLine of block.body.split('\n')) {
+                    let line = rawLine.trim();
+                    if (!line || line.startsWith('//')) continue;
+
+                    // 先摘出 tag，再去掉行尾注释
+                    let tag = '';
+                    const tagMatch = line.match(/`([^`]*)`/);
+                    if (tagMatch) {
+                        tag = tagMatch[1];
+                        line = line.slice(0, tagMatch.index).trim();
+                    }
+                    line = line.replace(/\/\/.*$/, '').replace(/\/\*[\s\S]*?\*\//g, '').trim();
+                    if (!line) continue;
+
+                    const tokens = line.split(/\s+/);
+                    if (tokens.length < 2) continue; // 匿名嵌入字段等，跳过
+                    const name = tokens[0];
+                    if (!/^\w+$/.test(name)) continue;
+                    const type = tokens.slice(1).join('');
+
+                    let jsonName = '';
+                    const jsonTag = tag.match(/json:"([^"]*)"/);
+                    if (jsonTag) jsonName = jsonTag[1].split(',')[0];
+                    if (jsonName === '-') continue;
+                    if (!jsonName) jsonName = toCamelCase(name);
+
+                    fields.push({ name, type, jsonName });
+                }
+                structs.push({ name: block.name, fields });
+            }
+
+            if (structs.length === 0) throw new Error('未找到有效的 struct 定义');
+            return { structs };
+        }
+
+        // 解析 JSON（嵌套对象会被拆成独立结构体）
+        function parseJSON(input) {
+            let obj;
+            try {
+                obj = JSON.parse(input);
             } catch (e) {
                 throw new Error('无法解析 JSON 格式: ' + e.message);
             }
+
+            const structs = [];
+            const usedNames = new Set();
+
+            function uniqueName(base) {
+                let name = toPascalCase(base) || 'Data';
+                let i = 2;
+                while (usedNames.has(name)) name = toPascalCase(base) + i++;
+                usedNames.add(name);
+                return name;
+            }
+
+            function typeOf(key, value) {
+                if (value === null) return 'string';
+                if (typeof value === 'boolean') return 'bool';
+                if (typeof value === 'number') return Number.isInteger(value) ? 'int64' : 'float64';
+                if (typeof value === 'string') return 'string';
+                if (Array.isArray(value)) {
+                    if (value.length === 0) return '[]interface{}';
+                    return '[]' + typeOf(key, value[0]);
+                }
+                return '*' + buildStruct(key, value);
+            }
+
+            // 先建子结构体再 push 父结构体，保证依赖顺序
+            function buildStruct(name, source) {
+                const structName = uniqueName(name);
+                const fields = [];
+                for (const [key, value] of Object.entries(source)) {
+                    fields.push({
+                        name: toPascalCase(key),
+                        type: typeOf(key, value),
+                        jsonName: key
+                    });
+                }
+                structs.push({ name: structName, fields });
+                return structName;
+            }
+
+            if (Array.isArray(obj)) {
+                const first = obj.find(v => v && typeof v === 'object' && !Array.isArray(v));
+                if (!first) throw new Error('无法从数组中推断结构');
+                buildStruct('Data', first);
+            } else if (obj && typeof obj === 'object') {
+                buildStruct('Data', obj);
+            } else {
+                throw new Error('JSON 顶层需要是对象或数组');
+            }
+
+            return { structs };
         }
 
-        // 解析 Protobuf
+        // 解析 Protobuf（支持多个 message，含嵌套 message）
         function parseProtobuf(input) {
-            const fields = [];
-            const nestedStructs = {};
-            const parsedMessages = [];
-            const messageRegex = /message\s+(\w+)\s*{([^}]*)}/g;
-            let match;
-            
-            while ((match = messageRegex.exec(input)) !== null) {
-                const messageName = match[1];
-                const content = match[2];
-                const lines = content.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('//'));
-                
-                const messageFields = [];
-                for (const line of lines) {
-                    const fieldMatch = line.match(/(repeated\s+)?(\w+)\s+(\w+)\s*=\s*\d+/);
-                    if (fieldMatch) {
-                        const [, repeated, type, name] = fieldMatch;
-                        // 将小驼峰转为大驼峰作为字段名
-                        const fieldName = name.replace(/^(.)/, c => c.toUpperCase()).replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-                        messageFields.push({
-                            name: fieldName,
-                            type: normalizeType((repeated ? '[]' : '') + type, 'proto'),
-                            jsonName: toCamelCase(name)
-                        });
+            const structs = [];
+
+            function handleBlocks(text) {
+                const blocks = extractBlocks(text, /message\s+(\w+)\s*\{/g);
+                for (const block of blocks) {
+                    // 嵌套 message 提升为顶层
+                    handleBlocks(block.body);
+                    const body = block.body.replace(/message\s+\w+\s*\{[\s\S]*?\n\s*\}/g, '');
+
+                    const fields = [];
+                    for (const rawLine of body.split('\n')) {
+                        const line = rawLine.replace(/\/\/.*$/, '').trim();
+                        if (!line || line.startsWith('//')) continue;
+
+                        // map<key, value> name = 1;
+                        const mapMatch = line.match(/^map\s*<\s*([\w.]+)\s*,\s*([\w.]+)\s*>\s+(\w+)\s*=\s*\d+/);
+                        if (mapMatch) {
+                            const [, keyType, valueType, name] = mapMatch;
+                            fields.push({
+                                name: toPascalCase(name),
+                                type: `map[${protoTypeToGo(keyType)}]${protoTypeToGo(valueType)}`,
+                                jsonName: toCamelCase(name)
+                            });
+                            continue;
+                        }
+
+                        const fieldMatch = line.match(/^(repeated\s+|optional\s+|required\s+)?([\w.]+)\s+(\w+)\s*=\s*\d+/);
+                        if (fieldMatch) {
+                            const [, modifier, type, name] = fieldMatch;
+                            const repeated = (modifier || '').trim() === 'repeated';
+                            fields.push({
+                                name: toPascalCase(name),
+                                type: (repeated ? '[]' : '') + protoTypeToGo(type),
+                                jsonName: toCamelCase(name)
+                            });
+                        }
                     }
-                }
-
-                parsedMessages.push({ name: messageName, fields: messageFields });
-            }
-
-            // 主消息优先使用 Data；若不存在则使用第一个定义
-            const mainMessage = parsedMessages.find(m => m.name === 'Data') || parsedMessages[0];
-            if (mainMessage) {
-                fields.push(...mainMessage.fields);
-                for (const m of parsedMessages) {
-                    if (m.name !== mainMessage.name) {
-                        nestedStructs[m.name] = { fields: m.fields };
-                    }
+                    structs.push({ name: block.name, fields });
                 }
             }
 
-            return {
-                name: mainMessage ? mainMessage.name : 'Data',
-                fields,
-                nestedStructs: Object.keys(nestedStructs).length > 0 ? nestedStructs : undefined
-            };
+            handleBlocks(input);
+            if (structs.length === 0) throw new Error('未找到有效的 message 定义');
+            return { structs };
         }
 
-        // 类型推断
-        function inferTypeFromValue(value) {
-            if (value === null) return 'string';
-            if (typeof value === 'boolean') return 'bool';
-            if (typeof value === 'number') {
-                return Number.isInteger(value) ? 'int64' : 'float64';
+        // Protobuf 标量类型 -> Golang 类型
+        function protoTypeToGo(type) {
+            switch (type) {
+                case 'int32':
+                case 'sint32':
+                case 'sfixed32':
+                case 'int64':
+                case 'sint64':
+                case 'sfixed64':
+                    return 'int64';
+                case 'uint32':
+                case 'fixed32':
+                case 'uint64':
+                case 'fixed64':
+                    return 'uint64';
+                case 'float':
+                case 'double':
+                    return 'float64';
+                case 'bool':
+                    return 'bool';
+                case 'string':
+                    return 'string';
+                case 'bytes':
+                    return '[]byte';
+                default:
+                    return type; // 自定义 message 类型
             }
-            if (typeof value === 'string') return 'string';
-            if (Array.isArray(value)) {
-                return '[]' + (value.length > 0 ? inferTypeFromValue(value[0]) : 'interface{}');
-            }
-            if (typeof value === 'object') return 'map[string]interface{}';
-            return 'interface{}';
         }
 
-        // 类型标准化
-        function normalizeType(type, from) {
-            // 统一为 Golang 风格的类型
-            const typeMap = {
-                'proto': {
-                    'int32': 'int64',
-                    'int64': 'int64',
-                    'float': 'float64',
-                    'double': 'float64',
-                    'string': 'string',
-                    'bool': 'bool'
-                }
-            };
-
-            if (from === 'golang') {
-                // 处理指针和数组
-                let normalized = type
-                    .replace(/\*+/g, '') // 移除指针符号
-                    .replace(/\bint\b/g, 'int64')
-                    .replace(/\bint32\b/g, 'int64');
-                
-                // 保留自定义类型（如 MikeUserVO）
-                return normalized;
-            }
-
-            if (typeMap[from]) {
-                let normalized = type;
-                for (const [key, value] of Object.entries(typeMap[from])) {
-                    normalized = normalized.replace(new RegExp('\\b' + key + '\\b', 'g'), value);
-                }
-                return normalized;
-            }
-
-            return type;
-        }
-
-        // 生成 Golang Struct
-        function generateGolang(data) {
-            let result = '';
-            
-            // 先生成嵌套的结构体
-            if (data.nestedStructs) {
-                for (const [structName, structData] of Object.entries(data.nestedStructs)) {
-                    result += `type ${structName} struct {\n`;
-                    for (const field of structData.fields) {
-                        const goType = field.type.replace(/\bint\b/g, 'int64').replace(/\bint32\b/g, 'int64');
-                        result += `\t${field.name} ${goType} \`json:"${field.jsonName}"\`\n`;
-                    }
-                    result += '}\n\n';
-                }
-            }
-            
-            // 生成主结构体
-            result += `type ${data.name} struct {\n`;
-            for (const field of data.fields) {
-                const goType = field.type.replace(/\bint\b/g, 'int64').replace(/\bint32\b/g, 'int64');
-                result += `\t${field.name} ${goType} \`json:"${field.jsonName}"\`\n`;
-            }
-            result += '}';
-            return result;
-        }
-
-        // 将 Go 基本类型映射到 Protobuf 标量类型
+        // Golang 类型 -> Protobuf 标量类型
         function goTypeToProtoScalar(goType) {
             switch (goType) {
                 case 'int':
-                case 'int64':
+                case 'int8':
+                case 'int16':
                 case 'int32':
+                case 'int64':
                     return 'int64';
+                case 'uint':
+                case 'uint8':
+                case 'uint16':
+                case 'uint32':
+                case 'uint64':
+                    return 'uint64';
                 case 'float64':
                 case 'double':
                     return 'double';
@@ -619,132 +646,132 @@
                 case 'bool':
                     return 'bool';
                 case 'string':
+                case 'time.Time':
+                    return 'string';
+                case 'interface{}':
+                case 'any':
                     return 'string';
                 default:
                     return goType; // 自定义类型保持原样
             }
         }
 
-        // 生成 JSON
-        function generateJSON(data) {
-            const obj = {};
-            for (const field of data.fields) {
-                let value;
-                const type = field.type;
-                
-                // 检查是否为基本类型
-                if (type.includes('int64') || type.includes('int')) {
-                    value = 0;
-                } else if (type.includes('float')) {
-                    value = 0.0;
-                } else if (type === 'bool') {
-                    value = false;
-                } else if (type.startsWith('[]')) {
-                    value = [];
-                } else if (type.startsWith('map')) {
-                    value = {};
-                } else if (type === 'string') {
-                    value = "";
-                } else if (type.startsWith('*')) {
-                    // 指针类型（自定义结构体）
-                    const structName = type.substring(1);
-                    if (data.nestedStructs && data.nestedStructs[structName]) {
-                        // 生成嵌套结构体的 JSON
-                        value = {};
-                        for (const nestedField of data.nestedStructs[structName].fields) {
-                            let nestedValue;
-                            const nestedType = nestedField.type;
-                            if (nestedType.includes('int64') || nestedType.includes('int')) {
-                                nestedValue = 0;
-                            } else if (nestedType.includes('float')) {
-                                nestedValue = 0.0;
-                            } else if (nestedType === 'bool') {
-                                nestedValue = false;
-                            } else if (nestedType.startsWith('[]')) {
-                                nestedValue = [];
-                            } else {
-                                nestedValue = "";
-                            }
-                            value[nestedField.jsonName] = nestedValue;
-                        }
-                    } else {
-                        value = null;
-                    }
-                } else {
-                    // 自定义类型（如 MikeUserVO）设为 null 或 {}
-                    value = null;
-                }
-                obj[field.jsonName] = value;
-            }
-            return JSON.stringify(obj, null, 2);
+        // Golang 输出时统一整型
+        function toGoOutputType(type) {
+            return type
+                .replace(/\bint\b/g, 'int64')
+                .replace(/\bint8\b/g, 'int64')
+                .replace(/\bint16\b/g, 'int64')
+                .replace(/\bint32\b/g, 'int64');
         }
 
-        // 生成 Protobuf (使用小驼峰命名)
+        // 生成 Golang Struct（每个结构体都输出）
+        function generateGolang(data) {
+            return data.structs.map(struct => {
+                let result = `type ${struct.name} struct {\n`;
+                const nameWidth = Math.max(0, ...struct.fields.map(f => f.name.length));
+                const typeWidth = Math.max(0, ...struct.fields.map(f => toGoOutputType(f.type).length));
+                for (const field of struct.fields) {
+                    const goType = toGoOutputType(field.type);
+                    result += `\t${field.name.padEnd(nameWidth)} ${goType.padEnd(typeWidth)} \`json:"${field.jsonName}"\`\n`;
+                }
+                return result + '}';
+            }).join('\n\n');
+        }
+
+        // 生成 Protobuf（每个结构体都输出一个 message）
         function generateProtobuf(data) {
-            let result = `message ${data.name} {\n`;
-            let index = 1;
-            for (const field of data.fields) {
-                let protoType = field.type;
+            return data.structs.map(struct => {
+                let result = `message ${struct.name} {\n`;
+                let index = 1;
 
-                // 处理指针类型（*NotifyData）
-                if (protoType.startsWith('*')) {
-                    protoType = protoType.substring(1);
-                }
+                for (const field of struct.fields) {
+                    let protoType = field.type.replace(/\*/g, '');
 
-                // 处理 map 类型: map[key]value => map<key, value>
-                const mapMatch = protoType.match(/^map\[(\w+)\](.+)$/);
-                if (mapMatch) {
-                    const keyType = goTypeToProtoScalar(mapMatch[1]) || 'string';
-                    const valueType = goTypeToProtoScalar(mapMatch[2].trim()) || 'string';
-                    // Protobuf 只允许标量/字符串作为 key，这里默认非字符串 key 也回退为 string
-                    const safeKeyType = keyType === 'string' ? 'string' : 'string';
-                    const mapLine = `\tmap<${safeKeyType}, ${valueType}> ${field.jsonName} = ${index};\n`;
-                    result += mapLine;
-                    index++;
-                    continue;
-                }
-                
-                // 判断是否为基本类型
-                const basicTypes = ['int64', 'int32', 'float64', 'double', 'bool', 'string'];
-                let isBasicType = false;
-                let isArray = protoType.startsWith('[]');
-                let baseType = isArray ? protoType.substring(2) : protoType;
-                
-                // 检查是否为基本类型
-                for (const bt of basicTypes) {
-                    if (baseType === bt) {
-                        isBasicType = true;
-                        break;
+                    // map[key]value => map<key, value>
+                    const mapMatch = protoType.match(/^map\[([^\]]+)\](.+)$/);
+                    if (mapMatch) {
+                        const valueType = goTypeToProtoScalar(mapMatch[2].trim());
+                        // Protobuf 的 map key 只允许标量，非字符串 key 统一回退为 string
+                        const keyType = goTypeToProtoScalar(mapMatch[1].trim());
+                        const safeKeyType = ['int64', 'uint64', 'bool', 'string'].includes(keyType) ? keyType : 'string';
+                        result += `\tmap<${safeKeyType}, ${valueType}> ${field.jsonName} = ${index};\n`;
+                        index++;
+                        continue;
                     }
+
+                    // []byte => bytes
+                    if (protoType === '[]byte' || protoType === '[]uint8') {
+                        result += `\tbytes ${field.jsonName} = ${index};\n`;
+                        index++;
+                        continue;
+                    }
+
+                    const isArray = protoType.startsWith('[]');
+                    const baseType = goTypeToProtoScalar(isArray ? protoType.substring(2) : protoType);
+                    const repeated = isArray ? 'repeated ' : '';
+
+                    result += `\t${repeated}${baseType} ${field.jsonName} = ${index};\n`;
+                    index++;
                 }
-                
-                // 如果是基本类型，进行类型映射
-                if (isBasicType) {
-                    baseType = baseType
-                        .replace(/int64/g, 'int64')
-                        .replace(/float64/g, 'double')
-                        .replace(/bool/g, 'bool')
-                        .replace(/string/g, 'string');
-                } else {
-                    // 自定义类型保持原样（如 MikeUserVO, NotifyData）
-                    baseType = baseType;
+
+                return result + '}';
+            }).join('\n\n');
+        }
+
+        // 生成 JSON（根结构体展开嵌套引用）
+        function generateJSON(data) {
+            const structMap = {};
+            for (const struct of data.structs) structMap[struct.name] = struct;
+
+            function valueOfType(type, seen) {
+                const cleaned = type.replace(/\*/g, '').trim();
+
+                if (cleaned.startsWith('map[')) return {};
+
+                if (cleaned.startsWith('[]')) {
+                    const elemType = cleaned.substring(2);
+                    const elemBase = baseTypeName(elemType);
+                    // 结构体切片给一条样例数据，标量切片保持空数组
+                    if (structMap[elemBase] && !seen.has(elemBase)) {
+                        return [valueOfType(elemType, seen)];
+                    }
+                    return [];
                 }
-                
-                const repeated = isArray ? 'repeated ' : '';
-                
-                // 使用小驼峰命名
-                result += `\t${repeated}${baseType} ${field.jsonName} = ${index};\n`;
-                index++;
+
+                if (structMap[cleaned]) {
+                    if (seen.has(cleaned)) return {}; // 循环引用保护
+                    return objectOfStruct(structMap[cleaned], new Set([...seen, cleaned]));
+                }
+
+                if (cleaned === 'bool') return false;
+                if (/^u?int(8|16|32|64)?$/.test(cleaned)) return 0;
+                if (/^float(32|64)?$|^double$/.test(cleaned)) return 0.0;
+                if (cleaned === 'string' || cleaned === 'time.Time') return '';
+                if (cleaned === 'interface{}' || cleaned === 'any') return null;
+                return null;
             }
-            result += '}';
-            return result;
+
+            function objectOfStruct(struct, seen) {
+                const obj = {};
+                for (const field of struct.fields) {
+                    obj[field.jsonName] = valueOfType(field.type, seen);
+                }
+                return obj;
+            }
+
+            const roots = findRootStructs(data.structs);
+            return roots.map(root => {
+                const json = JSON.stringify(objectOfStruct(root, new Set([root.name])), null, 2);
+                return roots.length > 1 ? `// ${root.name}\n${json}` : json;
+            }).join('\n\n');
         }
 
         // 转换主函数
         function convert() {
             hideError();
             const input = document.getElementById('inputText').value.trim();
-            
+
             if (!input) {
                 showError('请输入要转换的内容');
                 return;
@@ -754,7 +781,7 @@
                 // 自动检测输入类型
                 const inputType = detectInputType(input);
                 let data;
-                
+
                 switch (inputType) {
                     case 'golang':
                         data = parseGolangStruct(input);
@@ -770,23 +797,12 @@
                 }
 
                 // 生成各种格式（跳过输入类型本身）
-                if (inputType !== 'golang') {
-                    document.getElementById('golangOutput').textContent = generateGolang(data);
-                } else {
-                    document.getElementById('golangOutput').textContent = '';
-                }
-                
-                if (inputType !== 'json') {
-                    document.getElementById('jsonOutput').textContent = generateJSON(data);
-                } else {
-                    document.getElementById('jsonOutput').textContent = '';
-                }
-                
-                if (inputType !== 'proto') {
-                    document.getElementById('protoOutput').textContent = generateProtobuf(data);
-                } else {
-                    document.getElementById('protoOutput').textContent = '';
-                }
+                document.getElementById('golangOutput').textContent =
+                    inputType === 'golang' ? '' : generateGolang(data);
+                document.getElementById('jsonOutput').textContent =
+                    inputType === 'json' ? '' : generateJSON(data);
+                document.getElementById('protoOutput').textContent =
+                    inputType === 'proto' ? '' : generateProtobuf(data);
 
             } catch (e) {
                 showError('转换失败: ' + e.message);
