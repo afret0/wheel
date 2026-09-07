@@ -7,7 +7,6 @@ import (
 	"github.com/afret0/wheel/constant"
 	"github.com/afret0/wheel/log"
 	"github.com/afret0/wheel/tool"
-	"github.com/afret0/wheel/tool/timeTool"
 	"github.com/samber/lo/mutable"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -57,15 +56,17 @@ func FindWithPage[T any](
 	lg := log.CtxLogger(ctx)
 
 	// 默认排序：倒序（最新在前）
-	opt := &options.FindOptions{
+	defaultOpt := &options.FindOptions{
 		Sort:  bson.M{sortField: -1},
 		Limit: tool.Int64Ptr(constant.FindListOffset),
 	}
 
-	for _, v := range optChain {
-		if v != nil {
-			opt = v
-		}
+	// 逐字段合并而非整体覆盖, 调用方只需传关心的字段, 其余保留默认值
+	opt := options.MergeFindOptions(append([]*options.FindOptions{defaultOpt}, optChain...)...)
+
+	limit := int64(constant.FindListOffset)
+	if opt.Limit != nil && *opt.Limit > 0 {
+		limit = *opt.Limit
 	}
 
 	// -----------------------------
@@ -86,13 +87,15 @@ func FindWithPage[T any](
 	if tag != "" {
 		ts := tool.ConStringToInt64WithoutErr(tag)
 		if ts > 0 {
+			// 游标值取自文档 sortField 的原始值(毫秒时间戳), 比较时必须保持同类型,
+			// 否则 BSON 跨类型比较会让条件恒真/恒假, 导致翻页失效
 			if direction == DirectionBackward {
 				// 往后翻页（下一页）
-				filter[sortField] = bson.M{"$lt": timeTool.ParseMillisecond(ts)}
+				filter[sortField] = bson.M{"$lt": ts}
 			} else {
 				// 往前翻页（上一页）
 				opt.Sort = bson.M{sortField: 1}
-				filter[sortField] = bson.M{"$gt": timeTool.ParseMillisecond(ts)}
+				filter[sortField] = bson.M{"$gt": ts}
 			}
 		}
 	}
@@ -116,7 +119,7 @@ func FindWithPage[T any](
 	// -----------------------------
 	nextPage := &Page{
 		Count:      int64(len(list)),
-		IsLastPage: len(list) < constant.FindListOffset,
+		IsLastPage: int64(len(list)) < limit,
 	}
 
 	if len(list) == 0 {
