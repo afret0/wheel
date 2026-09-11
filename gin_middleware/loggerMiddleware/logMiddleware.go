@@ -77,6 +77,8 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 			app = "keke"
 		}
 
+		caller := c.GetHeader("caller")
+
 		c.Set("opId", opId)
 		c.Request.Header.Set("opId", opId)
 
@@ -101,6 +103,7 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 			"reqTime":  startT.Format("2006-01-02 15:04:05"),
 			"app":      app,
 			"method":   c.Request.Method,
+			"caller":   caller,
 		})
 
 		for _, uri := range opt.WhiteList {
@@ -156,7 +159,7 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 		uid := c.Request.Header.Get("_uid")
 
 		fields := logrus.Fields{
-			"latencyT":   latencyT.Milliseconds(),
+			"latency":    latencyT.Milliseconds(),
 			"res":        blw.body.String(),
 			"uid":        uid,
 			"statusCode": statusCode,

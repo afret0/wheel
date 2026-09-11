@@ -106,6 +106,11 @@ func HostId() string {
 	return hostname
 }
 
+func AppName() string {
+	a := os.Getenv("APP_NAME")
+	return a
+}
+
 func BoolPtr(b bool) *bool {
 	return &b
 }
