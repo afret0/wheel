@@ -103,8 +103,11 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 			"reqTime":  startT.Format("2006-01-02 15:04:05"),
 			"app":      app,
 			"method":   c.Request.Method,
-			"caller":   caller,
 		})
+
+		if tool.EnvEnabled("SHOW_CALLER") {
+			lg = lg.WithFields(logrus.Fields{"caller": caller})
+		}
 
 		for _, uri := range opt.WhiteList {
 			if strings.Contains(reqUri, uri) {
