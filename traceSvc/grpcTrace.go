@@ -24,9 +24,15 @@ func GrpcClientOption() grpc.DialOption {
 	return grpc.WithStatsHandler(&grpcClientStatsHandler{Handler: otelgrpc.NewClientHandler()})
 }
 
-// GrpcCallerOption 返回自动向 unary RPC metadata 写入 caller 的客户端 DialOption。
-func GrpcCallerOption() grpc.DialOption {
-	return grpc.WithChainUnaryInterceptor(grpcCallerUnaryClientInterceptor)
+// GrpcCallerOptions 返回自动向 RPC metadata 写入 caller 的客户端 DialOption。
+//
+// 这是 tool.GrpcCtx 之外的第二道防线: 未经 GrpcCtx 构造的 ctx 也能带上 caller。
+// 覆盖 unary 与 streaming 两种调用。
+func GrpcCallerOptions() []grpc.DialOption {
+	return []grpc.DialOption{
+		grpc.WithChainUnaryInterceptor(grpcCallerUnaryClientInterceptor),
+		grpc.WithChainStreamInterceptor(grpcCallerStreamClientInterceptor),
+	}
 }
 
 func grpcCallerUnaryClientInterceptor(
@@ -37,11 +43,32 @@ func grpcCallerUnaryClientInterceptor(
 	invoker grpc.UnaryInvoker,
 	opts ...grpc.CallOption,
 ) error {
-	md, _ := metadata.FromOutgoingContext(ctx)
-	md = md.Copy()
-	md.Set("caller", tool.AppName())
+	return invoker(ctxWithCaller(ctx), method, req, reply, cc, opts...)
+}
 
-	return invoker(metadata.NewOutgoingContext(ctx, md), method, req, reply, cc, opts...)
+func grpcCallerStreamClientInterceptor(
+	ctx context.Context,
+	desc *grpc.StreamDesc,
+	cc *grpc.ClientConn,
+	method string,
+	streamer grpc.Streamer,
+	opts ...grpc.CallOption,
+) (grpc.ClientStream, error) {
+	return streamer(ctxWithCaller(ctx), desc, cc, method, opts...)
+}
+
+// ctxWithCaller 在不破坏已有出站 metadata 的前提下覆盖 caller。
+func ctxWithCaller(ctx context.Context) context.Context {
+	md, ok := metadata.FromOutgoingContext(ctx)
+	if !ok {
+		md = metadata.MD{}
+	} else {
+		md = md.Copy()
+	}
+
+	tool.InjectCallerMD(md)
+
+	return metadata.NewOutgoingContext(ctx, md)
 }
 
 // grpcClientStatsHandler 包装 otelgrpc 的 client handler, 只把标准 gRPC 错误

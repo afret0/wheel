@@ -47,6 +47,7 @@ func GrpcCtx(ctx context.Context) context.Context {
 	}
 
 	md["opid"] = []string{opId}
+	InjectCallerMD(md)
 	carrier := propagation.MapCarrier{}
 	otel.GetTextMapPropagator().Inject(ctx, carrier)
 	for k, v := range carrier {
@@ -71,6 +72,24 @@ func GrpcCtx(ctx context.Context) context.Context {
 	// }
 
 	// return ctx
+}
+
+// MetaCaller 是标识调用方服务名的 metadata key, 与 HTTP 侧的 caller header 对齐。
+const MetaCaller = "caller"
+
+// InjectCallerMD 把当前服务名写入出站 metadata。
+//
+// md 常常派生自入站 metadata, 其中的 caller 是上游服务名; 本次调用的发起方是
+// 当前服务, 因此必须覆盖而不是保留。APP_NAME 缺失时无法得知自身身份, 此时删除
+// 该 key, 避免把上游的名字误当成本次调用的 caller。
+func InjectCallerMD(md metadata.MD) {
+	app := AppName()
+	if app == "" {
+		delete(md, MetaCaller)
+		return
+	}
+
+	md[MetaCaller] = []string{app}
 }
 
 func OpIdWithoutDefault(ctx context.Context) string {
