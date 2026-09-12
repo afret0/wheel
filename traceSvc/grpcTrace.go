@@ -9,6 +9,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/stats"
 	"google.golang.org/grpc/status"
 )
@@ -21,6 +22,26 @@ func GrpcClientOption() grpc.DialOption {
 	}
 
 	return grpc.WithStatsHandler(&grpcClientStatsHandler{Handler: otelgrpc.NewClientHandler()})
+}
+
+// GrpcCallerOption 返回自动向 unary RPC metadata 写入 caller 的客户端 DialOption。
+func GrpcCallerOption() grpc.DialOption {
+	return grpc.WithChainUnaryInterceptor(grpcCallerUnaryClientInterceptor)
+}
+
+func grpcCallerUnaryClientInterceptor(
+	ctx context.Context,
+	method string,
+	req, reply any,
+	cc *grpc.ClientConn,
+	invoker grpc.UnaryInvoker,
+	opts ...grpc.CallOption,
+) error {
+	md, _ := metadata.FromOutgoingContext(ctx)
+	md = md.Copy()
+	md.Set("caller", tool.AppName())
+
+	return invoker(metadata.NewOutgoingContext(ctx, md), method, req, reply, cc, opts...)
 }
 
 // grpcClientStatsHandler 包装 otelgrpc 的 client handler, 只把标准 gRPC 错误

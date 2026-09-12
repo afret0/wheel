@@ -51,6 +51,7 @@ func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		opId := strings.ReplaceAll(uuid.New().String(), "-", "")
 		uid := ""
+		caller := ""
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
 			if val, exists := md["opid"]; exists && len(val) > 0 {
 				opId = val[0]
@@ -61,6 +62,10 @@ func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 
 			if val, exists := md["_uid"]; exists && len(val) > 0 {
 				uid = val[0]
+			}
+
+			if val, exists := md["caller"]; exists && len(val) > 0 {
+				caller = val[0]
 			}
 		} else {
 			md := metadata.Pairs("opid", opId)
@@ -129,9 +134,13 @@ func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 		latencyT := endT.Sub(startT)
 
 		fields := logrus.Fields{
-			"latencyT": latencyT.Milliseconds(),
-			"res":      resp,
-			"err":      err,
+			"res": resp,
+			"err": err,
+		}
+
+		if tool.EnvEnabled("ENABLE_CALLER") {
+			fields["caller"] = caller
+			fields["latency"] = latencyT.Milliseconds()
 		}
 
 		if err != nil {

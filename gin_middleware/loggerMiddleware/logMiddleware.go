@@ -9,15 +9,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/afret0/wheel/tool"
-	"github.com/afret0/wheel/tool/recoverTool"
 	"github.com/getsentry/sentry-go"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
+	"github.com/afret0/wheel/tool"
+	"github.com/afret0/wheel/tool/recoverTool"
 )
 
 var middleWareLogger *logrus.Logger
@@ -105,10 +105,6 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 			"method":   c.Request.Method,
 		})
 
-		if tool.EnvEnabled("SHOW_CALLER") {
-			lg = lg.WithFields(logrus.Fields{"caller": caller})
-		}
-
 		for _, uri := range opt.WhiteList {
 			if strings.Contains(reqUri, uri) {
 				return
@@ -161,8 +157,11 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 		statusCode := c.Writer.Status()
 		uid := c.Request.Header.Get("_uid")
 
+		if tool.EnvEnabled("ENABLE_CALLER") {
+			lg = lg.WithFields(logrus.Fields{"caller": caller, "latency": latencyT.Milliseconds()})
+		}
+
 		fields := logrus.Fields{
-			"latency":    latencyT.Milliseconds(),
 			"res":        blw.body.String(),
 			"uid":        uid,
 			"statusCode": statusCode,
