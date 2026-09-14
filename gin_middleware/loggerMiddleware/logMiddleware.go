@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -45,11 +44,14 @@ func (w bodyLogWriter) Write(b []byte) (int, error) {
 }
 
 type Option struct {
-	Service        string   `json:"service"`
-	WhiteList      []string `json:"whiteList"`
-	ReportToSentry bool     `json:"reportToSentry"`
-	ReportToEmail  bool     `json:"reportToEmail"`
-	RePanic        bool     `json:"rePanic"`
+	Service   string   `json:"service"`
+	WhiteList []string `json:"whiteList"`
+	//Deprecated
+	ReportToSentry bool `json:"reportToSentry"`
+	//Deprecated
+	ReportToEmail bool `json:"reportToEmail"`
+	//Deprecated
+	RePanic bool `json:"rePanic"`
 
 	EmailReceiver []string             `json:"emailReceiver"`
 	EmailSvc      recoverTool.EmailSvc `json:"emailSvc"`
@@ -125,11 +127,15 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 					"opId":  opId,
 				}).Error(r)
 
-				if opt.ReportToSentry {
-					go sentry.CaptureException(fmt.Errorf("%s", p))
-				}
+				//opt.ReportToSentry = false
+				//if tool.EnvEnabled("ENABLE_REPORT_TO_SENTRY") {
+				//	//}
+				//	//if opt.ReportToSentry {
+				//	go sentry.CaptureException(fmt.Errorf("%s", p))
+				//}
 
-				if opt.ReportToEmail {
+				if tool.EnvEnabled("ENABLE_REPORT_TO_EMAIL") {
+					//if opt.ReportToEmail {
 					go recoverTool.GetRecoverTool(&recoverTool.Option{
 						Service:       opt.Service,
 						Env:           tool.GetEnv(),
@@ -138,7 +144,8 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 					}).HandleRecover(r, stackTrace)
 				}
 
-				if opt.RePanic {
+				//if opt.RePanic {
+				if tool.EnvEnabled("ENABLE_REPANIC") {
 					panic(p)
 				}
 
