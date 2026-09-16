@@ -107,14 +107,20 @@ func HostId() string {
 }
 
 func AppName() string {
-	a := os.Getenv("APP_NAME")
-	return a
+	l := strings.Split(HostId(), "-")
+	if len(l) > 0 {
+		return l[0]
+	}
+
+	return ""
 }
 
+// Deprecated
 func BoolPtr(b bool) *bool {
 	return &b
 }
 
+// Deprecated
 func Int64Ptr(i int64) *int64 {
 	return &i
 }
