@@ -113,6 +113,7 @@ func Post(ctx context.Context, ret interface{}, url string, body interface{}, he
 	return nil
 }
 
+// Deprecated
 func MarshallUrlParams(url string, params map[string]string) string {
 	l := make([]string, 0)
 	for k, v := range params {
@@ -128,9 +129,10 @@ func Get(ctx context.Context, ret interface{}, url string, headers ...http.Heade
 
 	ctx, span := startClientSpan(ctx, "GET", url)
 
-	opId := tool.ConvertOpId(tool.OpId(ctx))
+	opId := tool.OpId(ctx)
 	hd := make(http.Header)
 	hd.Add("opId", opId)
+	hd.Add("caller", tool.AppName())
 
 	// 必须在 client span 创建之后注入, 否则透传的是上层 span 而非本次调用
 	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(hd))
