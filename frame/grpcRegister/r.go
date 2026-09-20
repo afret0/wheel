@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/afret0/wheel/frame/router"
@@ -28,6 +29,8 @@ type Opt = Option
 type slot struct {
 	GrpcController  GrpcController
 	MiddlewareChain []gin.HandlerFunc
+	// ServiceDesc 由 RegisterWithServiceDesc 写入, 仅 RegisterGrpcControllerToGinRouterV1 使用
+	ServiceDesc *grpc.ServiceDesc
 }
 
 type MethodMiddlewareSlot struct {
@@ -63,6 +66,9 @@ func (g *GrpcRegister) Register(serviceName string, ctrl GrpcController, middlew
 	}
 }
 
+// RegisterGrpcControllerToGinRouter 把 controller 上所有导出方法注册为 gin 接口,
+// 需要靠 Option.PrefixWhiteList 裁剪不希望暴露的方法.
+// 新项目建议使用 RegisterGrpcControllerToGinRouterV1, 只注册 proto 中声明的方法.
 func (g *GrpcRegister) RegisterGrpcControllerToGinRouter() {
 	for serviceName, slot := range g.slot {
 		g.registerGrpcControllerToGinRouter(serviceName, slot.GrpcController, slot.MiddlewareChain...)
