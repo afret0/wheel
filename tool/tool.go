@@ -107,12 +107,22 @@ func HostId() string {
 }
 
 func AppName() string {
-	l := strings.Split(HostId(), "-")
-	if len(l) > 0 {
-		return l[0]
+	hostname := HostId()
+	parts := strings.Split(hostname, "-")
+
+	if len(parts) < 3 {
+		return hostname // 不符合 K8s 命名规则，直接返回
 	}
 
-	return ""
+	// 去掉最后两个段（rs-hash + pod-suffix）
+	return strings.Join(parts[:len(parts)-2], "-")
+
+	//l := strings.Split(HostId(), "-")
+	//if len(l) > 0 {
+	//	return l[0]
+	//}
+	//
+	//return ""
 }
 
 // Deprecated
