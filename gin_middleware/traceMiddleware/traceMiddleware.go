@@ -9,6 +9,7 @@
 package traceMiddleware
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
@@ -36,12 +37,24 @@ type Option struct {
 // Request.Context(), 业务代码里惯用的 `h.ctrl.Do(c, ...)` 写法就读不到中间件创建的
 // span, 后续所有 DB / Redis / 下游调用都会脱离链路。
 //
-// 副作用: 打开后 gin.Context 的 Deadline/Done/Err 同样回退到请求上下文, 请求结束后
-// 继续使用该 ctx 会得到 context canceled。脱离请求生命周期的后台任务应改用
-// tool.RenewCtx 派生 context, 它会保留链路但不继承 cancel。
+// 但它同时会让 gin.Context 的 Deadline/Done/Err 一并回退到请求上下文, 而 net/http 会在
+// handler 返回或客户端断连时 cancel 该上下文。存量代码若把 *gin.Context 传给异步任务,
+// 打开后会突然出现大量 context canceled。
+//
+// 为此中间件用 context.WithoutCancel 剥离了请求上下文的取消信号: Value 仍然回退(链路可用),
+// 而 Deadline/Done/Err 保持与 ContextWithFallback 关闭时一致的空实现, 业务无需改动。
+//
+// 代价: 客户端断连与上游 deadline 不再向下传播。若业务依赖 c.Request.Context() 或
+// c.Done() 做断连检测, 需要移除 withoutCancel 调用并改用 tool.RenewCtx 处理后台任务。
 func Setup(e *gin.Engine, opts ...*Option) {
 	e.ContextWithFallback = true
 	e.Use(TraceMiddleware(opts...))
+}
+
+// withoutCancel 用请求上下文的值派生出一个不可取消的上下文并写回 Request。
+// 详见 Setup 的说明。
+func withoutCancel(c *gin.Context) {
+	c.Request = c.Request.WithContext(context.WithoutCancel(c.Request.Context()))
 }
 
 // TraceMiddleware 返回链路追踪中间件。
@@ -49,7 +62,8 @@ func Setup(e *gin.Engine, opts ...*Option) {
 //
 // 注意: 单独使用本中间件时, 必须同时设置 engine.ContextWithFallback = true,
 // 否则业务代码把 *gin.Context 当作 context.Context 使用时读不到 span。
-// 推荐直接使用 Setup 完成注册。
+// 本中间件会剥离请求上下文的取消信号(见 Setup), 因此打开 fallback 不会引入
+// context canceled。推荐直接使用 Setup 完成注册。
 func TraceMiddleware(opts ...*Option) gin.HandlerFunc {
 	opt := new(Option)
 	if len(opts) > 0 && opts[0] != nil {
@@ -57,21 +71,27 @@ func TraceMiddleware(opts ...*Option) gin.HandlerFunc {
 	}
 
 	if !tool.EnvEnabled("TRACE") {
-		return func(c *gin.Context) { c.Next() }
+		// 即便不采集链路, Setup 也已打开 ContextWithFallback, 仍需剥离取消信号
+		return func(c *gin.Context) {
+			withoutCancel(c)
+			c.Next()
+		}
 	}
 
 	return func(c *gin.Context) {
 		path := c.Request.URL.Path
 		for _, w := range opt.WhiteList {
 			if w != "" && strings.Contains(path, w) {
+				withoutCancel(c)
 				c.Next()
 				return
 			}
 		}
 
 		// 关键: 先从入站请求头还原上游 span, 再以其为父级开启本服务的根 span
+		// WithoutCancel 使 gin.Context 回退后不继承请求的取消信号, 详见 Setup 说明
 		ctx := otel.GetTextMapPropagator().Extract(
-			c.Request.Context(),
+			context.WithoutCancel(c.Request.Context()),
 			propagation.HeaderCarrier(c.Request.Header),
 		)
 
