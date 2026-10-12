@@ -16,40 +16,11 @@ import (
 	"github.com/afret0/wheel/tool"
 )
 
-//type RetryOpt struct {
-//	retryCount int
-//	retryDelay int
-//}
-
-//func PostWithRetry(ctx context.Context, ret interface{}, url string, body interface{}, opt *RetryOpt, headers ...http.Header) error {
-//	timeoutCtx, cancel := context.WithTimeout(ctx, time.Duration(opt.retryDelay*opt.retryCount)*time.Second)
-//	defer cancel()
-//
-//	var err error
-//
-//	for {
-//		select {
-//		case <-timeoutCtx.Done():
-//			return fmt.Errorf("timeout while trying to obtain the lock, err: %+v", err)
-//		default:
-//
-//			err = Post(ctx, ret, url, body, headers...)
-//			//lock, err := l.Locker.Obtain(ctx, key, time.Duration(ttl)*time.Second, nil)
-//			if err != nil {
-//				if errors.Is(err, redislock.ErrNotObtained) {
-//					// If the lock is not obtained, wait for a while before trying again
-//					time.Sleep(time.Duration(retryDelay) * time.Second)
-//					continue
-//				}
-//				// If there is another error, return it
-//				return nil, err
-//			}
-//
-//			// If the lock is obtained, return it
-//			return lock, nil
-//		}
-//	}
-//}
+type BaseRpl[T any] struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Data    T      `json:"data"`
+}
 
 func Post(ctx context.Context, ret interface{}, url string, body interface{}, headers ...http.Header) error {
 	lg := log.CtxLogger(ctx).WithField("url", url)
