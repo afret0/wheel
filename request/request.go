@@ -43,6 +43,8 @@ func Post(ctx context.Context, ret interface{}, url string, body interface{}, he
 		endClientSpan(span, 0, err)
 		return err
 	}
+	lg.Infof("req: %s", payloadJson)
+
 	payload := bytes.NewReader(payloadJson)
 	req, err := http.NewRequestWithContext(ctx, "POST", url, payload)
 	if err != nil {
