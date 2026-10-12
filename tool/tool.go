@@ -1,10 +1,13 @@
 package tool
 
 import (
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
 	"math"
+	"net"
+	"net/http"
 	"os"
 	"reflect"
 	"strconv"
@@ -85,16 +88,80 @@ func IsLetter(s string) bool {
 	return true
 }
 
-func ClientIP(ctx *gin.Context) string {
-	ip := ctx.ClientIP()
+// 网关(如 ingress)会把最外层客户端 IP 放进 X-Original-Forwarded-For,
+// 其余代理链依次追加到 X-Forwarded-For, 因此前者优先级最高。
+const (
+	headerOriginalForwardedFor = "X-Original-Forwarded-For"
+	headerForwardedFor         = "X-Forwarded-For"
+	headerRealIP               = "X-Real-Ip"
+)
 
-	oip := ctx.GetHeader("X-Original-Forwarded-For")
+// ClientIP 返回请求方的真实 IP, 行为与旧版 ClientIP(*gin.Context) 一致。
+// ctx 直接传 *gin.Context, 或以它为父级派生出来的 context 都可以。
+//
+// 能取到 *gin.Context 时复用 gin 的 ClientIP(), 保留 engine 的 TrustedPlatform /
+// TrustedProxies / RemoteIPHeaders 配置语义; 只能取到 *http.Request 时按
+// X-Original-Forwarded-For > X-Forwarded-For > X-Real-Ip > RemoteAddr 的顺序解析。
+// 两条路径都优先返回网关注入的 X-Original-Forwarded-For。
+//
+// 注意: c.Request.Context() 不携带 gin 写入的 key, 这种情况下取不到 IP(返回空串),
+// 需要 client IP 就直接把 c 往下传。
+func ClientIP(ctx context.Context) string {
+	if ctx == nil {
+		return ""
+	}
 
-	if oip != "" {
-		ip = oip
+	if gc, ok := ctx.Value(gin.ContextKey).(*gin.Context); ok && gc != nil && gc.Request != nil {
+		if oip := gc.Request.Header.Get(headerOriginalForwardedFor); oip != "" {
+			return oip
+		}
+
+		return gc.ClientIP()
+	}
+
+	return clientIPFromRequest(requestFromCtx(ctx))
+}
+
+// clientIPFromRequest 在没有 gin.Context(engine 配置)可用时, 从 *http.Request 上尽力解析客户端 IP。
+func clientIPFromRequest(req *http.Request) string {
+	if req == nil {
+		return ""
+	}
+
+	if oip := req.Header.Get(headerOriginalForwardedFor); oip != "" {
+		return oip
+	}
+
+	if xff := req.Header.Get(headerForwardedFor); xff != "" {
+		ip, _, _ := strings.Cut(xff, ",")
+		if ip = strings.TrimSpace(ip); ip != "" {
+			return ip
+		}
+	}
+
+	if rip := req.Header.Get(headerRealIP); rip != "" {
+		return rip
+	}
+
+	remoteAddr := strings.TrimSpace(req.RemoteAddr)
+	ip, _, err := net.SplitHostPort(remoteAddr)
+	if err != nil {
+		return remoteAddr
 	}
 
 	return ip
+}
+
+// requestFromCtx 取出 ctx 上的 *http.Request, 与 frame.Request 等价。
+// tool 不能直接调 frame.Request: frame -> database -> tool 已经存在依赖,
+// 再加 tool -> frame 就成了 import cycle, 因此这里就地实现同样的查找。
+func requestFromCtx(ctx context.Context) *http.Request {
+	req, ok := ctx.Value(gin.ContextRequestKey).(*http.Request)
+	if !ok {
+		return nil
+	}
+
+	return req
 }
 
 func HostId() string {
