@@ -61,7 +61,7 @@ func Year() string {
 }
 
 func YearByTime(t time.Time) string {
-	return fmt.Sprintf("%d", t.Year())
+	return fmt.Sprintf("%04d", t.Year())
 }
 
 // LastMonth 返回上个月的年月格式（例如：202312）
@@ -70,17 +70,7 @@ func LastMonth() string {
 }
 
 func LastMonthByTime(t time.Time) string {
-	year := t.Year()
-	month := int(t.Month())
-
-	if month == int(time.January) {
-		year = year - 1
-		month = int(time.December)
-	} else {
-		month = month - 1
-	}
-
-	return fmt.Sprintf("%d%02d", year, month)
+	return MonthByTime(FirstDayOfMonth(t).AddDate(0, 0, -1))
 }
 
 func Month() string {
@@ -89,6 +79,10 @@ func Month() string {
 
 func MonthByTime(t time.Time) string {
 	return fmt.Sprintf("%s%02d", YearByTime(t), t.Month())
+}
+
+func FirstDayOfMonth(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location())
 }
 
 func Day() string {

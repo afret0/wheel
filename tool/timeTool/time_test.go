@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+const monthStrLen = 6
+
 func Test_time(t *testing.T) {
 	fmt.Printf("LastWeek: %s\n", LastWeek())
 	fmt.Printf("Week: %s\n", Week())
@@ -172,5 +174,119 @@ func Test_noArgFuncEqualsByTime(t *testing.T) {
 		if lv.got < lo || lv.got > hi {
 			t.Errorf("%s() = %s, want within [%s, %s]", lv.name, lv.got, lo, hi)
 		}
+	}
+}
+
+func Test_LastMonthByTime_monthEnd(t *testing.T) {
+	bj := TZBeijing()
+
+	tests := []struct {
+		name          string
+		at            time.Time
+		wantLastMonth string
+	}{
+		{name: "月初第一纳秒仍算上月", at: time.Date(2026, time.March, 1, 0, 0, 0, 0, bj), wantLastMonth: "202602"},
+		{name: "3 月 31 号(上月仅 28 天)", at: time.Date(2026, time.March, 31, 23, 59, 59, int(time.Second)-1, bj), wantLastMonth: "202602"},
+		{name: "5 月 31 号", at: time.Date(2026, time.May, 31, 12, 0, 0, 0, bj), wantLastMonth: "202604"},
+		{name: "7 月 31 号", at: time.Date(2026, time.July, 31, 12, 0, 0, 0, bj), wantLastMonth: "202606"},
+		{name: "8 月 31 号", at: time.Date(2026, time.August, 31, 12, 0, 0, 0, bj), wantLastMonth: "202607"},
+		{name: "10 月 31 号", at: time.Date(2026, time.October, 31, 12, 0, 0, 0, bj), wantLastMonth: "202609"},
+		{name: "闰年 2 月 29 号", at: time.Date(2024, time.February, 29, 23, 59, 59, 0, bj), wantLastMonth: "202401"},
+		{name: "平年 2 月 28 号", at: time.Date(2026, time.February, 28, 23, 59, 59, 0, bj), wantLastMonth: "202601"},
+		{name: "1 月跨年", at: time.Date(2026, time.January, 31, 12, 0, 0, 0, bj), wantLastMonth: "202512"},
+		{name: "12 月末", at: time.Date(2026, time.December, 31, 12, 0, 0, 0, bj), wantLastMonth: "202611"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := LastMonthByTime(tt.at)
+
+			if got != tt.wantLastMonth {
+				t.Errorf("LastMonthByTime(%s) = %s, want %s", FormatTime(tt.at), got, tt.wantLastMonth)
+			}
+
+			if got == MonthByTime(tt.at) {
+				t.Errorf("LastMonthByTime(%s) = %s, 不应该与 MonthByTime 相同", FormatTime(tt.at), got)
+			}
+
+			if len(got) != monthStrLen {
+				t.Errorf("LastMonthByTime(%s) = %s, 长度应为 %d", FormatTime(tt.at), got, monthStrLen)
+			}
+		})
+	}
+}
+
+func Test_LastMonthByTime_everyDay(t *testing.T) {
+	bj := TZBeijing()
+	start := time.Date(1970, time.January, 1, 0, 0, 0, 0, bj)
+
+	for i := 0; i < 50000; i++ {
+		at := start.AddDate(0, 0, i)
+
+		year, month := at.Year(), int(at.Month())-1
+		if month == 0 {
+			year, month = year-1, 12
+		}
+
+		want := fmt.Sprintf("%04d%02d", year, month)
+		if got := LastMonthByTime(at); got != want {
+			t.Fatalf("LastMonthByTime(%s) = %s, want %s", FormatTime(at), got, want)
+		}
+
+		if got := MonthByTime(at); got != fmt.Sprintf("%04d%02d", at.Year(), int(at.Month())) {
+			t.Fatalf("MonthByTime(%s) = %s", FormatTime(at), got)
+		}
+	}
+}
+
+func Test_FirstDayOfMonth(t *testing.T) {
+	bj := TZBeijing()
+
+	tests := []struct {
+		name string
+		at   time.Time
+		want string
+	}{
+		{name: "月末归一到月初", at: time.Date(2026, time.March, 31, 23, 59, 59, int(time.Second)-1, bj), want: "2026-03-01 00:00:00"},
+		{name: "月初保持不变", at: time.Date(2026, time.March, 1, 0, 0, 0, 0, bj), want: "2026-03-01 00:00:00"},
+		{name: "带毫秒也归零", at: time.Date(2026, time.December, 15, 8, 30, 20, int(time.Millisecond)*265, bj), want: "2026-12-01 00:00:00"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := FirstDayOfMonth(tt.at)
+
+			if FormatTime(got) != tt.want {
+				t.Errorf("FirstDayOfMonth(%s) = %s, want %s", FormatTime(tt.at), FormatTime(got), tt.want)
+			}
+
+			if got.Location().String() != tt.at.Location().String() {
+				t.Errorf("FirstDayOfMonth() location = %s, want %s", got.Location(), tt.at.Location())
+			}
+
+			if got.Day() != 1 || got.Hour() != 0 || got.Minute() != 0 || got.Second() != 0 || got.Nanosecond() != 0 {
+				t.Errorf("FirstDayOfMonth(%s) 未归一到月初零点: %s", FormatTime(tt.at), got.Format("2006-01-02 15:04:05.999999999"))
+			}
+		})
+	}
+}
+
+func Test_zeroTimePadding(t *testing.T) {
+	zero := time.Time{}
+
+	if got, want := YearByTime(zero), "0001"; got != want {
+		t.Errorf("YearByTime(zero) = %s, want %s", got, want)
+	}
+
+	if got, want := MonthByTime(zero), "000101"; got != want {
+		t.Errorf("MonthByTime(zero) = %s, want %s", got, want)
+	}
+
+	if got, want := LastMonthByTime(zero), "000012"; got != want {
+		t.Errorf("LastMonthByTime(zero) = %s, want %s", got, want)
+	}
+
+	if got, want := DayByTime(zero), "00010101"; got != want {
+		t.Errorf("DayByTime(zero) = %s, want %s", got, want)
 	}
 }
