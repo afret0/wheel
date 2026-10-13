@@ -57,51 +57,70 @@ func WeekDay() time.Weekday {
 }
 
 func Year() string {
-	return fmt.Sprintf("%d", LocalNow().Year())
-	//return fmt.Sprintf("%d", LocalNow().Year())
+	return YearByTime(LocalNow())
+}
+
+func YearByTime(t time.Time) string {
+	return fmt.Sprintf("%d", t.Year())
 }
 
 // LastMonth 返回上个月的年月格式（例如：202312）
 func LastMonth() string {
-	now := LocalNow()
+	return LastMonthByTime(LocalNow())
+}
 
-	// 获取当前年月
-	currentYear := now.Year()
-	currentMonth := now.Month()
+func LastMonthByTime(t time.Time) string {
+	year := t.Year()
+	month := int(t.Month())
 
-	// 计算上个月的年月
-	var year int
-	var month time.Month
-
-	if currentMonth == time.January {
-		year = currentYear - 1
-		month = time.December
+	if month == int(time.January) {
+		year = year - 1
+		month = int(time.December)
 	} else {
-		year = currentYear
-		month = currentMonth - 1
+		month = month - 1
 	}
 
 	return fmt.Sprintf("%d%02d", year, month)
 }
 
 func Month() string {
-	return fmt.Sprintf("%s%02d", Year(), LocalNow().Month())
+	return MonthByTime(LocalNow())
+}
+
+func MonthByTime(t time.Time) string {
+	return fmt.Sprintf("%s%02d", YearByTime(t), t.Month())
 }
 
 func Day() string {
-	return fmt.Sprintf("%s%02d", Month(), LocalNow().Day())
+	return DayByTime(LocalNow())
+}
+
+func DayByTime(t time.Time) string {
+	return fmt.Sprintf("%s%02d", MonthByTime(t), t.Day())
 }
 
 func Hour() string {
-	return fmt.Sprintf("%s%02d", Day(), LocalNow().Hour())
+	return HourByTime(LocalNow())
+}
+
+func HourByTime(t time.Time) string {
+	return fmt.Sprintf("%s%02d", DayByTime(t), t.Hour())
 }
 
 func Minute() string {
-	return fmt.Sprintf("%s%02d", Hour(), LocalNow().Minute())
+	return MinuteByTime(LocalNow())
+}
+
+func MinuteByTime(t time.Time) string {
+	return fmt.Sprintf("%s%02d", HourByTime(t), t.Minute())
 }
 
 func Second() string {
-	return fmt.Sprintf("%s%02d", Minute(), LocalNow().Second())
+	return SecondByTime(LocalNow())
+}
+
+func SecondByTime(t time.Time) string {
+	return fmt.Sprintf("%s%02d", MinuteByTime(t), t.Second())
 }
 
 func MidnightTody() time.Time {
