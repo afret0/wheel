@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/afret0/wheel/tool"
 	"go.opentelemetry.io/otel"
@@ -66,9 +67,18 @@ func mergeHeader(hd http.Header, headers []http.Header) {
 	}
 
 	for k, v := range headers[0] {
-		if k == "opId" || k == "Traceparent" || k == "Tracestate" {
+		if isProtectedHeader(k) {
 			continue
 		}
 		hd[k] = v
 	}
+}
+
+func isProtectedHeader(k string) bool {
+	switch strings.ToLower(k) {
+	case "opid", tool.MetaCaller, "traceparent", "tracestate":
+		return true
+	}
+
+	return false
 }

@@ -31,7 +31,7 @@ func Post(ctx context.Context, ret interface{}, url string, body interface{}, he
 	hd := make(http.Header)
 	hd.Add("Content-Type", "application/json")
 	hd.Add("opId", opId)
-	hd.Add("caller", tool.AppName())
+	tool.InjectCallerHeader(hd)
 
 	// 必须在 client span 创建之后注入, 否则透传的是上层 span 而非本次调用
 	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(hd))
@@ -105,7 +105,7 @@ func Get(ctx context.Context, ret interface{}, url string, headers ...http.Heade
 	opId := tool.OpId(ctx)
 	hd := make(http.Header)
 	hd.Add("opId", opId)
-	hd.Add("caller", tool.AppName())
+	tool.InjectCallerHeader(hd)
 
 	// 必须在 client span 创建之后注入, 否则透传的是上层 span 而非本次调用
 	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(hd))

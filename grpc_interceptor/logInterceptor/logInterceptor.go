@@ -53,18 +53,20 @@ func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 		uid := ""
 		caller := ""
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
-			if val, exists := md["opid"]; exists && len(val) > 0 {
+			if val := md.Get("opid"); len(val) > 0 {
 				opId = val[0]
 			} else {
-				md["opid"] = []string{opId}
-				ctx = metadata.NewOutgoingContext(ctx, md)
+				outMd := md.Copy()
+				outMd.Set("opid", opId)
+				outMd.Delete(tool.MetaCaller)
+				ctx = metadata.NewOutgoingContext(ctx, outMd)
 			}
 
-			if val, exists := md["_uid"]; exists && len(val) > 0 {
+			if val := md.Get("_uid"); len(val) > 0 {
 				uid = val[0]
 			}
 
-			if val, exists := md["caller"]; exists && len(val) > 0 {
+			if val := md.Get(tool.MetaCaller); len(val) > 0 {
 				caller = val[0]
 			}
 		} else {
@@ -77,6 +79,9 @@ func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 			span := trace.SpanFromContext(ctx)
 			if span != nil && span.IsRecording() {
 				span.SetAttributes(attribute.String("opId", opId))
+				if caller != "" {
+					span.SetAttributes(attribute.String("rpc.caller", caller))
+				}
 			}
 		}
 
@@ -100,11 +105,16 @@ func Interceptor(opts ...*Option) grpc.UnaryServerInterceptor {
 
 				p := panicMarshal(r, stack, opId)
 
-				lg.WithFields(logrus.Fields{
+				panicFields := logrus.Fields{
 					"panic": r,
 					"stack": stack,
 					"opId":  opId,
-				}).Error(r)
+				}
+				if tool.EnvEnabled("ENABLE_CALLER") {
+					panicFields["caller"] = caller
+				}
+
+				lg.WithFields(panicFields).Error(r)
 
 				if opt.ReportToSentry {
 					go sentry.CaptureException(errors.New(p))

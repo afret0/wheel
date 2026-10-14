@@ -20,10 +20,8 @@ import (
 	"github.com/afret0/wheel/tool"
 )
 
-// 端到端验证核心诉求: 调用方从环境变量拿到自己的服务名, 调用其它服务时自动带上,
-// 被调用方的日志里能看到"谁在调用我"。
 func TestCallerFlowsFromClientToServerLog(t *testing.T) {
-	t.Setenv("APP_NAME", "service-a")
+	t.Setenv("HOSTNAME", "service-a-6d8f7b9c4d-x2abc")
 	t.Setenv("ENABLE_CALLER", "true")
 
 	logs := captureMiddlewareLog(t)
@@ -42,9 +40,11 @@ func TestCallerFlowsFromClientToServerLog(t *testing.T) {
 		t.Fatalf("health check: %v", err)
 	}
 
+	want := "service-a"
+
 	entry := lastLogEntry(t, logs.String())
-	if got := entry["caller"]; got != "service-a" {
-		t.Fatalf("caller = %v, want service-a", got)
+	if got := entry["caller"]; got != want {
+		t.Fatalf("caller = %v, want %v", got, want)
 	}
 	if _, ok := entry["latency"]; !ok {
 		t.Fatal("latency field is missing")
@@ -54,7 +54,7 @@ func TestCallerFlowsFromClientToServerLog(t *testing.T) {
 // 即使建连时漏掉了 wheel 的标准 DialOption, 只要走 tool.GrpcCtx 构造 ctx,
 // caller 依然会被带上。
 func TestCallerFlowsWithoutDialOptions(t *testing.T) {
-	t.Setenv("APP_NAME", "service-a")
+	t.Setenv("HOSTNAME", "service-a-6d8f7b9c4d-x2abc")
 	t.Setenv("ENABLE_CALLER", "true")
 
 	logs := captureMiddlewareLog(t)
@@ -75,9 +75,11 @@ func TestCallerFlowsWithoutDialOptions(t *testing.T) {
 		t.Fatalf("health check: %v", err)
 	}
 
+	want := "service-a"
+
 	entry := lastLogEntry(t, logs.String())
-	if got := entry["caller"]; got != "service-a" {
-		t.Fatalf("caller = %v, want service-a", got)
+	if got := entry["caller"]; got != want {
+		t.Fatalf("caller = %v, want %v", got, want)
 	}
 }
 

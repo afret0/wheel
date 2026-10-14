@@ -79,7 +79,7 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 			app = "keke"
 		}
 
-		caller := c.GetHeader("caller")
+		caller := c.GetHeader(tool.MetaCaller)
 
 		c.Set("opId", opId)
 		c.Request.Header.Set("opId", opId)
@@ -120,12 +120,17 @@ func LoggerMiddleware(opts ...*Option) gin.HandlerFunc {
 
 				p := panicMarshal(r, stackTrace, opId)
 
-				// 记录panic信息
-				lg.WithFields(logrus.Fields{
+				panicFields := logrus.Fields{
 					"panic": r,
 					"stack": stackTrace,
 					"opId":  opId,
-				}).Error(r)
+				}
+				if tool.EnvEnabled("ENABLE_CALLER") {
+					panicFields["caller"] = caller
+				}
+
+				// 记录panic信息
+				lg.WithFields(panicFields).Error(r)
 
 				//opt.ReportToSentry = false
 				//if tool.EnvEnabled("ENABLE_REPORT_TO_SENTRY") {

@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"unicode"
 
 	"github.com/gin-gonic/gin"
@@ -173,23 +174,61 @@ func HostId() string {
 	return hostname
 }
 
-func AppName() string {
-	hostname := HostId()
-	parts := strings.Split(hostname, "-")
+var (
+	appNameFallbackOnce sync.Once
+	osHostnameOnce      = sync.OnceValue(readOsHostname)
+)
 
-	if len(parts) < 3 {
-		return hostname // 不符合 K8s 命名规则，直接返回
+func AppName() string {
+	hostId := HostId()
+	if !isGeneratedUuid(hostId) {
+		return appNameFromHostId(hostId)
 	}
 
-	// 去掉最后两个段（rs-hash + pod-suffix）
-	return strings.Join(parts[:len(parts)-2], "-")
+	hostname := osHostnameOnce()
+	if hostname == "" {
+		return ""
+	}
 
-	//l := strings.Split(HostId(), "-")
-	//if len(l) > 0 {
-	//	return l[0]
-	//}
-	//
-	//return ""
+	appNameFallbackOnce.Do(func() {
+		logrus.Infof("appName fallback, reason: HOSTNAME 为空使 HostId 退化成随机 uuid, 改用 os.Hostname() 取服务名, hostname: %s", hostname)
+	})
+
+	return appNameFromHostId(hostname)
+}
+
+func readOsHostname() string {
+	hostname, err := os.Hostname()
+	if err != nil || hostname == "" {
+		logrus.Warnf("osHostname fail, reason: os.Hostname() 取不到主机名, 服务名留空不写 caller, err: %v", err)
+
+		return ""
+	}
+
+	return hostname
+}
+
+func appNameFromHostId(hostId string) string {
+	parts := strings.Split(hostId, "-")
+	if len(parts) < 3 {
+		return hostId
+	}
+
+	return strings.Join(parts[:len(parts)-2], "-")
+}
+
+func isGeneratedUuid(s string) bool {
+	if len(s) != 32 {
+		return false
+	}
+
+	for _, c := range s {
+		if !(c >= '0' && c <= '9') && !(c >= 'a' && c <= 'f') {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Deprecated

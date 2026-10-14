@@ -9,9 +9,8 @@ import (
 )
 
 func TestGrpcCallerUnaryClientInterceptorOverwritesStaleCaller(t *testing.T) {
-	t.Setenv("APP_NAME", "order-service")
+	t.Setenv("HOSTNAME", "order-service-6d8f7b9c4d-x2abc")
 
-	// 模拟直接透传入站 metadata 的场景: caller 仍是上游服务名。
 	ctx := metadata.NewOutgoingContext(
 		context.Background(),
 		metadata.Pairs("opid", "existing-op", "caller", "upstream-service"),
@@ -43,7 +42,7 @@ func TestGrpcCallerUnaryClientInterceptorOverwritesStaleCaller(t *testing.T) {
 }
 
 func TestGrpcCallerUnaryClientInterceptorWithoutOutgoingMetadata(t *testing.T) {
-	t.Setenv("APP_NAME", "order-service")
+	t.Setenv("HOSTNAME", "order-service-6d8f7b9c4d-x2abc")
 
 	err := grpcCallerUnaryClientInterceptor(
 		context.Background(),
@@ -68,7 +67,7 @@ func TestGrpcCallerUnaryClientInterceptorWithoutOutgoingMetadata(t *testing.T) {
 }
 
 func TestGrpcCallerStreamClientInterceptor(t *testing.T) {
-	t.Setenv("APP_NAME", "order-service")
+	t.Setenv("HOSTNAME", "order-service-6d8f7b9c4d-x2abc")
 
 	_, err := grpcCallerStreamClientInterceptor(
 		context.Background(),
@@ -91,13 +90,12 @@ func TestGrpcCallerStreamClientInterceptor(t *testing.T) {
 	}
 }
 
-// APP_NAME 缺失时无法得知自身身份, 保留上游 caller 会产生误导性日志。
-func TestGrpcCallerUnaryClientInterceptorDropsStaleCallerWithoutAppName(t *testing.T) {
-	t.Setenv("APP_NAME", "")
+func TestGrpcCallerUnaryClientInterceptorKeepsOtherOutgoingKeys(t *testing.T) {
+	t.Setenv("HOSTNAME", "order-service-6d8f7b9c4d-x2abc")
 
 	ctx := metadata.NewOutgoingContext(
 		context.Background(),
-		metadata.Pairs("caller", "upstream-service"),
+		metadata.Pairs("_uid", "10086", "caller", "upstream-service"),
 	)
 
 	err := grpcCallerUnaryClientInterceptor(
@@ -108,8 +106,8 @@ func TestGrpcCallerUnaryClientInterceptorDropsStaleCallerWithoutAppName(t *testi
 		nil,
 		func(ctx context.Context, _ string, _, _ any, _ *grpc.ClientConn, _ ...grpc.CallOption) error {
 			md, _ := metadata.FromOutgoingContext(ctx)
-			if got := md.Get("caller"); len(got) != 0 {
-				t.Fatalf("caller = %v, want empty", got)
+			if got := md.Get("_uid"); len(got) != 1 || got[0] != "10086" {
+				t.Fatalf("_uid = %v, want [10086]", got)
 			}
 			return nil
 		},

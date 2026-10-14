@@ -3,8 +3,10 @@ package tool
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -44,6 +46,8 @@ func GrpcCtx(ctx context.Context) context.Context {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		md = metadata.Pairs()
+	} else {
+		md = md.Copy()
 	}
 
 	md["opid"] = []string{opId}
@@ -80,7 +84,7 @@ const MetaCaller = "caller"
 // InjectCallerMD 把当前服务名写入出站 metadata。
 //
 // md 常常派生自入站 metadata, 其中的 caller 是上游服务名; 本次调用的发起方是
-// 当前服务, 因此必须覆盖而不是保留。APP_NAME 缺失时无法得知自身身份, 此时删除
+// 当前服务, 因此必须覆盖而不是保留。服务名未知时无法标识自身, 此时删除
 // 该 key, 避免把上游的名字误当成本次调用的 caller。
 func InjectCallerMD(md metadata.MD) {
 	app := AppName()
@@ -90,6 +94,34 @@ func InjectCallerMD(md metadata.MD) {
 	}
 
 	md[MetaCaller] = []string{app}
+}
+
+var (
+	callerHeaderSkipOnce sync.Once
+	callerHeaderNilOnce  sync.Once
+)
+
+func InjectCallerHeader(hd http.Header) {
+	if hd == nil {
+		callerHeaderNilOnce.Do(func() {
+			logrus.Warn("callerHeader skip, reason: 未传入 http.Header, 无处写入 caller")
+		})
+
+		return
+	}
+
+	app := AppName()
+	if app == "" {
+		hd.Del(MetaCaller)
+
+		callerHeaderSkipOnce.Do(func() {
+			logrus.Warnf("callerHeader skip, reason: 服务名未知, 不写 caller 头, callerFile: %s", CallerInfo(3))
+		})
+
+		return
+	}
+
+	hd.Set(MetaCaller, app)
 }
 
 func OpIdWithoutDefault(ctx context.Context) string {
