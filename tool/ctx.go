@@ -163,9 +163,9 @@ func DetachCtx(ctx context.Context, opId string) context.Context {
 
 // Deprecated
 func ConvertOpId(opId string) string {
-	//spanId := UUIDWithoutHyphen()
-	//opId = fmt.Sprintf("%s", opId, spanId)
-	//logrus.Infof("convert opId: %s, caller: %s", opId, CallerInfo(2))
+	spanId := UUIDWithoutHyphen()
+	opId = fmt.Sprintf("%s:%s", opId, spanId)
+	logrus.Infof("convert opId: %s, caller: %s", opId, CallerInfo(2))
 	return opId
 }
 
