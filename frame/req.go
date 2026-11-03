@@ -63,11 +63,12 @@ func IsKeke(ctx context.Context) bool {
 }
 
 func UrlContainsCMS(ctx context.Context) bool {
-	reqUrl := Request(ctx).RequestURI
-	if strings.Contains(reqUrl, "CMS") {
-		return true
+	req := Request(ctx)
+	if req == nil {
+		return false
 	}
-	return false
+
+	return strings.Contains(req.RequestURI, "CMS")
 }
 
 func Uid(ctx context.Context) string {
